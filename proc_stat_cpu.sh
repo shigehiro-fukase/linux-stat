@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # gloval variables
 #   INTERVAL_SEC:   sleep every loop
 #
@@ -8,10 +10,10 @@
 [ -z "${INTERVAL_SEC}" ] && INTERVAL_SEC=1
 
 NUM_CPU=$( grep ^cpu /proc/stat | wc -l )
-MAX_CPU=$(expr ${NUM_CPU} - 1)
+let MAX_CPU=(${NUM_CPU} - 1)
 
 cpu_stat() {
-    local datetime=$( date --rfc-3339='ns' )
+    #local datetime=$( date --rfc-3339='ns' )
     eval $( grep ^cpu /proc/stat | \
             awk '{print $1"=( "$2" "$3" "$4" "$5" "$6" "$7" "$8" )"}'
           )
@@ -28,17 +30,17 @@ cpu_stat() {
         fi
         bak_cpu=( $(eval echo "\${BAK_CPU${i}[@]}") )
         [ ${#bak_cpu[@]} -eq 0 ] && bak_cpu=( ${cur_cpu[@]} )
-
         #echo "bak_cpu[$i](${#bak_cpu[@]})=( ${bak_cpu[@]} )"
         #echo "cur_cpu[$i](${#cur_cpu[@]})=( ${cur_cpu[@]} )"
-        local diff_user=$( expr ${cur_cpu[0]} - ${bak_cpu[0]} )
-        local diff_nice=$( expr ${cur_cpu[1]} - ${bak_cpu[1]} )
-        local diff_sys=$( expr ${cur_cpu[2]} - ${bak_cpu[2]} )
-        local diff_idle=$( expr ${cur_cpu[3]} - ${bak_cpu[3]} )
-        local diff_iowait=$( expr ${cur_cpu[4]} - ${bak_cpu[4]} )
-        local diff_irq=$( expr ${cur_cpu[5]} - ${bak_cpu[5]} )
-        local diff_softirq=$( expr ${cur_cpu[6]} - ${bak_cpu[6]} )
-        local total=$( expr ${diff_user} + ${diff_nice} + ${diff_sys} + ${diff_idle} + ${diff_iowait} + ${diff_irq} + ${diff_softirq} );
+
+        let local diff_user=(${cur_cpu[0]} - ${bak_cpu[0]})
+        let local diff_nice=(${cur_cpu[1]} - ${bak_cpu[1]})
+        let local diff_sys=(${cur_cpu[2]} - ${bak_cpu[2]})
+        let local diff_idle=(${cur_cpu[3]} - ${bak_cpu[3]})
+        let local diff_iowait=(${cur_cpu[4]} - ${bak_cpu[4]})
+        let local diff_irq=(${cur_cpu[5]} - ${bak_cpu[5]})
+        let local diff_softirq=(${cur_cpu[6]} - ${bak_cpu[6]})
+        let local total=( ${diff_user} + ${diff_nice} + ${diff_sys} + ${diff_idle} + ${diff_iowait} + ${diff_irq} + ${diff_softirq} )
         if [ ${total} -ne 0 ]; then
             local user=$( echo "scale=2; (((${diff_user})*10000)/${total})/100" | bc | sed 's/^\./0./' )
             local nice=$( echo "scale=2; (((${diff_nice})*10000)/${total})/100" | bc | sed 's/^\./0./' )
@@ -60,7 +62,6 @@ cpu_stat() {
         eval "BAK_CPU${i}=( ${cur_cpu[@]} )"
     done
 }
-
 
 for ((count=0; ; count++));  do
     cpu_stat $count
