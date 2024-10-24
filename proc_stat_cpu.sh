@@ -64,7 +64,7 @@ cpu_stat() {
             local softirq=$( calc_per ${bak_cpu[6]} ${cur_cpu[6]} ${total} )
 
             if [ ${i} -eq 0 ]; then
-                printf "\e[%uA${datetime}\n" $((${num_cpu}+2)) # [esc] move cursor line up + show datetime
+                printf "\e[%uA${datetime}\n" $((${linenum}+2)) # [esc] move cursor line up + show datetime
                 printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
                 printf "ALL(${num_cpu}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             else
