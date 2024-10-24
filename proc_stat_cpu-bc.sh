@@ -47,7 +47,7 @@ cpu_stat() {
             local softirq=$( echo "scale=2; ((${diff_softirq}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
 
             if [ ${i} -eq 0 ]; then
-                printf "\e[%uA${datetime}\n" $((${num_cpu}+2)) # [esc] move cursor line up + show datetime
+                printf "\e[%uA${datetime}\n" $((${linenum}+2)) # [esc] move cursor line up + show datetime
                 printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
                 printf "ALL(${num_cpu}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             else
