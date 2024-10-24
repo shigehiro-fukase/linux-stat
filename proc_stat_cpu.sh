@@ -76,8 +76,8 @@ cpu_stat() {
     done
 }
 
-trap 'printf "\e[?1049l"; exit' EXIT # [esc] DECRST XT_EXTSCRN swap to normal screen buffer
-trap 'printf "\e[?1049l"; exit' INT TERM # [esc] DECRST XT_EXTSCRN swap to normal screen buffer
+trap 'printf "\e[?25h\e[?1049l"; exit' EXIT # show cursor, swap to normal screen buffer
+trap 'printf "\e[?25h\e[?1049l"; exit' INT TERM # show cursor, swap to normal screen buffer
 
 printf "\e[?1049h" # [esc] DECSET XT_EXTSCRN swap to alt screen buffer
 echo -e "\e[2J" # [esc] clear screen
