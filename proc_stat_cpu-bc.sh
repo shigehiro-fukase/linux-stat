@@ -61,9 +61,9 @@ cpu_stat() {
 
 echo -e "\e[2J" # [esc] clear screen
 for ((count=0; ; count++));  do
-    printf "\e[1v" # [esc] hide cursor
+    printf "\e[?25l" # [esc] DECRST DECTCEM hide cursor
     cpu_stat $count
-    printf "\e[0v" # [esc] show cursor
+    printf "\e[?25h" # [esc] DECSET DECTCEM show cursor
     sleep ${INTERVAL_SEC}
     #echo
 done
