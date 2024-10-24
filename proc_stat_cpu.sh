@@ -12,20 +12,36 @@
 NUM_CPU=$( grep ^cpu /proc/stat | wc -l )
 let MAX_CPU=(${NUM_CPU} - 1)
 
+# $1: previous (backup) value
+# $2: current value
+calc_per() {
+    let local diff=($2-$1)
+    local total=$3
+    let local int=( $(( $(( ${diff}*10000 )) /${total} )) /100 )
+    let local dec=( $(( $(( ${diff}*10000 )) /${total} )) %100 )
+    local per=""
+    if [ ${dec} -eq 0 ]; then
+        per="${int}.00"
+    elif [ ${dec} -lt 10 ]; then
+        per="${int}.0${dec}"
+    else
+        per="${int}.${dec}"
+    fi
+    echo ${per}
+}
 cpu_stat() {
     #local datetime=$( date --rfc-3339='ns' )
     eval $( grep ^cpu /proc/stat | \
             awk '{print $1"=( "$2" "$3" "$4" "$5" "$6" "$7" "$8" )"}'
           )
     for ((i=0; i < ${NUM_CPU}; i++)); do
-        local n=0
+        let local n=(${i} - 1)
         local -a cur_cpu
         local -a bak_cpu
 
         if [ ${i} -eq 0 ]; then
             cur_cpu=( ${cpu[@]} )
         else
-            n=$(expr ${i} - 1)
             cur_cpu=( $(eval echo "\${cpu${n}[@]}") )
         fi
         bak_cpu=( $(eval echo "\${BAK_CPU${i}[@]}") )
@@ -42,21 +58,20 @@ cpu_stat() {
         let local diff_softirq=(${cur_cpu[6]} - ${bak_cpu[6]})
         let local total=( ${diff_user} + ${diff_nice} + ${diff_sys} + ${diff_idle} + ${diff_iowait} + ${diff_irq} + ${diff_softirq} )
         if [ ${total} -ne 0 ]; then
-            local user=$( echo "scale=2; (((${diff_user})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local nice=$( echo "scale=2; (((${diff_nice})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local sys=$( echo "scale=2; (((${diff_sys})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local idle=$( echo "scale=2; (((${diff_idle})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local iowait=$( echo "scale=2; (((${diff_iowait})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local irq=$( echo "scale=2; (((${diff_irq})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local softirq=$( echo "scale=2; (((${diff_softirq})*10000)/${total})/100" | bc | sed 's/^\./0./' )
+            local user=$( calc_per ${bak_cpu[0]} ${cur_cpu[0]} ${total} )
+            local nice=$( calc_per ${bak_cpu[1]} ${cur_cpu[1]} ${total} )
+            local sys=$( calc_per ${bak_cpu[2]} ${cur_cpu[2]} ${total} )
+            local idle=$( calc_per ${bak_cpu[3]} ${cur_cpu[3]} ${total} )
+            local iowait=$( calc_per ${bak_cpu[4]} ${cur_cpu[4]} ${total} )
+            local irq=$( calc_per ${bak_cpu[5]} ${cur_cpu[5]} ${total} )
+            local softirq=$( calc_per ${bak_cpu[6]} ${cur_cpu[6]} ${total} )
 
             if [ ${i} -eq 0 ]; then
-                printf "CPU[#] %6s %6s %6s %6s %6s %6s %6s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
-                printf "ALL(${MAX_CPU}) %5s%% %5s%% %5s%% %5s%% %5s%% %5s%% %5s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
+                printf "ALL(${MAX_CPU}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             else
-                printf "CPU[$n] %5s%% %5s%% %5s%% %5s%% %5s%% %5s%% %5s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                printf "CPU[$n] %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             fi
-
         fi
 
         eval "BAK_CPU${i}=( ${cur_cpu[@]} )"
