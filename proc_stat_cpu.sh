@@ -77,15 +77,30 @@ cpu_stat() {
         eval "BAK_CPU${i}=( ${cur_cpu[@]} )"
     done
 }
+
+# "\e[?47h"     DECSET XT_ALTSCRN swap to alt screen buffer
+# "\e[?1047h"   DECSET XT_ALTS_47 swap to alt screen buffer
+# "\e[?1049h"   DECSET XT_EXTSCRN save cursor pos, swap to alt screen buffer, clear screen
+# "\e[2J"       clear screen
+altscrn_enter() {
+    printf "\e[?1049h" # swap to alt screen buffer, clear screen
+}
+# "\e[?25h"     DECTCEM show cursor
+# "\e[?47l"     DECRST XT_ALTSCRN swap to normal screen buffer
+# "\e[?1047l"   DECRST XT_ALTS_47 clear screen, swap to normal screen buffer
+# "\e[?1049l"   DECRST XT_EXTSCRN clear screen, swap to normal screen buffer, restore cursor pos
+altscrn_exit() {
+    printf "\e[?25h\e[?1049l" # show cursor, swap to normal screen buffer
+}
 exit_handler() {
-    printf "\e[?25h\e[?1049l"; # show cursor, swap to normal screen buffer
+    altscrn_exit
     exit;
 }
 
 trap 'exit_handler' EXIT
 trap 'exit_handler' INT TERM
 
-printf "\e[?1049h" # [esc] DECSET XT_EXTSCRN swap to alt screen buffer, clear screen
+altscrn_enter   # Enter to ALT screen
 
 for ((count=0; ; count++));  do
     printf "\e[?25l" # [esc] DECRST DECTCEM hide cursor
