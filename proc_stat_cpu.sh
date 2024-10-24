@@ -76,11 +76,17 @@ cpu_stat() {
     done
 }
 
+trap 'printf "\e[?1049l"; exit' EXIT # [esc] DECRST XT_EXTSCRN swap to normal screen buffer
+trap 'printf "\e[?1049l"; exit' INT TERM # [esc] DECRST XT_EXTSCRN swap to normal screen buffer
+
+printf "\e[?1049h" # [esc] DECSET XT_EXTSCRN swap to alt screen buffer
 echo -e "\e[2J" # [esc] clear screen
+
 for ((count=0; ; count++));  do
     printf "\e[?25l" # [esc] DECRST DECTCEM hide cursor
     cpu_stat $count
     printf "\e[?25h" # [esc] DECSET DECTCEM show cursor
     sleep ${INTERVAL_SEC}
-    #echo
 done
+
+printf "\e[?1049l" # [esc] DECRST XT_EXTSCRN swap to normal screen buffer
