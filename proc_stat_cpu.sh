@@ -30,7 +30,7 @@ calc_per() {
     echo ${per}
 }
 cpu_stat() {
-    #local datetime=$( date --rfc-3339='ns' )
+    local datetime=$( date --rfc-3339='ns' )
     eval $( grep ^cpu /proc/stat | \
             awk '{print $1"=( "$2" "$3" "$4" "$5" "$6" "$7" "$8" )"}'
           )
@@ -67,6 +67,7 @@ cpu_stat() {
             local softirq=$( calc_per ${bak_cpu[6]} ${cur_cpu[6]} ${total} )
 
             if [ ${i} -eq 0 ]; then
+                echo "${datetime}"
                 printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
                 printf "ALL(${MAX_CPU}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             else
