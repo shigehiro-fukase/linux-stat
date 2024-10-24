@@ -3,14 +3,9 @@
 # gloval variables
 #   INTERVAL_SEC:   sleep every loop
 #
-#   NUM_CPU:    Number of cpu lines
-#   MAX_CPU:    Max cpu core
 #   BAK_CPU:    Previous data
 
 [ -z "${INTERVAL_SEC}" ] && INTERVAL_SEC=1
-
-NUM_CPU=$( grep ^cpu /proc/stat | wc -l )
-let MAX_CPU=(${NUM_CPU} - 1)
 
 # $1: previous (backup) value
 # $2: current value
@@ -31,10 +26,13 @@ calc_per() {
 }
 cpu_stat() {
     local datetime=$( date --rfc-3339='ns' )
-    eval $( grep ^cpu /proc/stat | \
-            awk '{print $1"=( "$2" "$3" "$4" "$5" "$6" "$7" "$8" )"}'
-          )
-    for ((i=0; i < ${NUM_CPU}; i++)); do
+    local linenum
+    eval $(
+         awk '{if($1 ~ /^cpu/) print "linenum="NR" "$1"=( "$2" "$3" "$4" "$5" "$6" "$7" "$8" )"}' /proc/stat
+    )
+    let local num_cpu=(${linenum}-1)
+    let local max_cpu=(${num_cpu} - 1)
+    for ((i=0; i < ${num_cpu}; i++)); do
         let local n=(${i} - 1)
         local -a cur_cpu
         local -a bak_cpu
@@ -67,9 +65,9 @@ cpu_stat() {
             local softirq=$( calc_per ${bak_cpu[6]} ${cur_cpu[6]} ${total} )
 
             if [ ${i} -eq 0 ]; then
-                printf "\e[%uA${datetime}\n" $((${NUM_CPU}+2)) # [esc] move cursor line up + show datetime
+                printf "\e[%uA${datetime}\n" $((${num_cpu}+2)) # [esc] move cursor line up + show datetime
                 printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
-                printf "ALL(${MAX_CPU}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                printf "ALL(${max_cpu}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             else
                 printf "CPU[$n] %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             fi
