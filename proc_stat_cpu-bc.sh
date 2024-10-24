@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2024 Shigehiro Fukase <shigehiro.fukase@gmail.com>
+# SPDX-License-Identifier: MIT
 
 # gloval variables
 #   INTERVAL_SEC:   sleep every loop
