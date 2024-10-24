@@ -67,7 +67,7 @@ cpu_stat() {
             local softirq=$( calc_per ${bak_cpu[6]} ${cur_cpu[6]} ${total} )
 
             if [ ${i} -eq 0 ]; then
-                echo "${datetime}"
+                printf "\e[%uA${datetime}\n" $((${NUM_CPU}+2)) # [esc] move cursor line up + show datetime
                 printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
                 printf "ALL(${MAX_CPU}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             else
@@ -79,8 +79,9 @@ cpu_stat() {
     done
 }
 
+echo -e "\e[2J" # [esc] clear screen
 for ((count=0; ; count++));  do
     cpu_stat $count
     sleep ${INTERVAL_SEC}
-    echo
+    #echo
 done
