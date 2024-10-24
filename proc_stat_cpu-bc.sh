@@ -40,7 +40,6 @@ cpu_stat() {
         let local total=( ${diff_user} + ${diff_nice} + ${diff_sys} + ${diff_idle} + ${diff_iowait} + ${diff_irq} + ${diff_softirq} )
         if [ ${total} -ne 0 ]; then
             local user=$( echo "scale=2; ((${diff_user}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
-            local user=$( echo "scale=2; ((${diff_user}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
             local nice=$( echo "scale=2; ((${diff_nice}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
             local sys=$( echo "scale=2; ((${diff_sys}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
             local idle=$( echo "scale=2; ((${diff_idle}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
@@ -49,7 +48,7 @@ cpu_stat() {
             local softirq=$( echo "scale=2; ((${diff_softirq}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
 
             if [ ${i} -eq 0 ]; then
-                echo "${datetime}"
+                printf "\e[%uA${datetime}\n" $((${num_cpu}+2)) # [esc] move cursor line up + show datetime
                 printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
                 printf "ALL(${max_cpu}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             else
@@ -61,8 +60,11 @@ cpu_stat() {
     done
 }
 
+echo -e "\e[2J" # [esc] clear screen
 for ((count=0; ; count++));  do
+    printf "\e[1v" # [esc] hide cursor
     cpu_stat $count
+    printf "\e[0v" # [esc] show cursor
     sleep ${INTERVAL_SEC}
-    echo
+    #echo
 done
