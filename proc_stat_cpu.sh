@@ -75,9 +75,13 @@ cpu_stat() {
         eval "BAK_CPU${i}=( ${cur_cpu[@]} )"
     done
 }
+exit_handler() {
+    printf "\e[?25h\e[?1049l"; # show cursor, swap to normal screen buffer
+    exit;
+}
 
-trap 'printf "\e[?25h\e[?1049l"; exit' EXIT # show cursor, swap to normal screen buffer
-trap 'printf "\e[?25h\e[?1049l"; exit' INT TERM # show cursor, swap to normal screen buffer
+trap 'exit_handler' EXIT
+trap 'exit_handler' INT TERM
 
 printf "\e[?1049h" # [esc] DECSET XT_EXTSCRN swap to alt screen buffer
 echo -e "\e[2J" # [esc] clear screen
@@ -89,4 +93,4 @@ for ((count=0; ; count++));  do
     sleep ${INTERVAL_SEC}
 done
 
-printf "\e[?1049l" # [esc] DECRST XT_EXTSCRN swap to normal screen buffer
+exit_handler
