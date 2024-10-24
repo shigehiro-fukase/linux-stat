@@ -31,8 +31,7 @@ cpu_stat() {
          awk '{if($1 ~ /^cpu/) print "linenum="NR" "$1"=( "$2" "$3" "$4" "$5" "$6" "$7" "$8" )"}' /proc/stat
     )
     let local num_cpu=(${linenum}-1)
-    let local max_cpu=(${num_cpu} - 1)
-    for ((i=0; i < ${num_cpu}; i++)); do
+    for ((i=0; i < ${linenum}; i++)); do
         let local n=(${i} - 1)
         local -a cur_cpu
         local -a bak_cpu
@@ -67,7 +66,7 @@ cpu_stat() {
             if [ ${i} -eq 0 ]; then
                 printf "\e[%uA${datetime}\n" $((${num_cpu}+2)) # [esc] move cursor line up + show datetime
                 printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
-                printf "ALL(${max_cpu}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                printf "ALL(${num_cpu}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             else
                 printf "CPU[$n] %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             fi
@@ -79,17 +78,11 @@ cpu_stat() {
 
 echo -e "\e[2J" # [esc] clear screen
 for ((count=0; ; count++));  do
-    printf "\eV" # [esc] SPA
-    printf "\e[s" # [esc] SCP: save current cursor position
-    printf "\e[>5h" # [esc] hide cursor
-    printf "\e[25h" # [esc] hide cursor
-    printf "\e[1v" # [esc] hide cursor
+    printf "\e[=1S" # [esc] hide cursor
+    #printf "\e[?25l" # [esc] DECRST DECTCEM hide cursor
     cpu_stat $count
-    printf "\e[u" # [esc] RCP: restore saved cursor position
-    printf "\e[>5l" # [esc] show cursor
-    printf "\e[25l" # [esc] show cursor
-    printf "\e[0v" # [esc] show cursor
-    printf "\eW" # [esc] EPA
+    printf "\e[=0S" # [esc] show cursor
+    #printf "\e[?25h" # [esc] DECSET DECTCEM show cursor
     sleep ${INTERVAL_SEC}
     #echo
 done
