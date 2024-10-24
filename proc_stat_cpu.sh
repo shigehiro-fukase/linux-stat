@@ -85,8 +85,7 @@ exit_handler() {
 trap 'exit_handler' EXIT
 trap 'exit_handler' INT TERM
 
-printf "\e[?1049h" # [esc] DECSET XT_EXTSCRN swap to alt screen buffer
-echo -e "\e[2J" # [esc] clear screen
+printf "\e[?1049h" # [esc] DECSET XT_EXTSCRN swap to alt screen buffer, clear screen
 
 for ((count=0; ; count++));  do
     printf "\e[?25l" # [esc] DECRST DECTCEM hide cursor
