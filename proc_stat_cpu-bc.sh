@@ -18,14 +18,13 @@ cpu_stat() {
             awk '{print $1"=( "$2" "$3" "$4" "$5" "$6" "$7" "$8" )"}'
           )
     for ((i=0; i < ${NUM_CPU}; i++)); do
-        local n=0
+        let local n=(${i} - 1)
         local -a cur_cpu
         local -a bak_cpu
 
         if [ ${i} -eq 0 ]; then
             cur_cpu=( ${cpu[@]} )
         else
-            n=$(expr ${i} - 1)
             cur_cpu=( $(eval echo "\${cpu${n}[@]}") )
         fi
         bak_cpu=( $(eval echo "\${BAK_CPU${i}[@]}") )
@@ -42,21 +41,21 @@ cpu_stat() {
         let local diff_softirq=(${cur_cpu[6]} - ${bak_cpu[6]})
         let local total=( ${diff_user} + ${diff_nice} + ${diff_sys} + ${diff_idle} + ${diff_iowait} + ${diff_irq} + ${diff_softirq} )
         if [ ${total} -ne 0 ]; then
-            local user=$( echo "scale=2; (((${diff_user})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local nice=$( echo "scale=2; (((${diff_nice})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local sys=$( echo "scale=2; (((${diff_sys})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local idle=$( echo "scale=2; (((${diff_idle})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local iowait=$( echo "scale=2; (((${diff_iowait})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local irq=$( echo "scale=2; (((${diff_irq})*10000)/${total})/100" | bc | sed 's/^\./0./' )
-            local softirq=$( echo "scale=2; (((${diff_softirq})*10000)/${total})/100" | bc | sed 's/^\./0./' )
+            local user=$( echo "scale=2; ((${diff_user}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
+            local user=$( echo "scale=2; ((${diff_user}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
+            local nice=$( echo "scale=2; ((${diff_nice}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
+            local sys=$( echo "scale=2; ((${diff_sys}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
+            local idle=$( echo "scale=2; ((${diff_idle}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
+            local iowait=$( echo "scale=2; ((${diff_iowait}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
+            local irq=$( echo "scale=2; ((${diff_irq}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
+            local softirq=$( echo "scale=2; ((${diff_softirq}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
 
             if [ ${i} -eq 0 ]; then
-                printf "CPU[#] %6s %6s %6s %6s %6s %6s %6s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
-                printf "ALL(${MAX_CPU}) %5s%% %5s%% %5s%% %5s%% %5s%% %5s%% %5s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
+                printf "ALL(${MAX_CPU}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             else
-                printf "CPU[$n] %5s%% %5s%% %5s%% %5s%% %5s%% %5s%% %5s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                printf "CPU[$n] %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
             fi
-
         fi
 
         eval "BAK_CPU${i}=( ${cur_cpu[@]} )"
