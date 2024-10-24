@@ -79,11 +79,17 @@ cpu_stat() {
 
 echo -e "\e[2J" # [esc] clear screen
 for ((count=0; ; count++));  do
+    printf "\eV" # [esc] SPA
     printf "\e[s" # [esc] SCP: save current cursor position
     printf "\e[>5h" # [esc] hide cursor
+    printf "\e[25h" # [esc] hide cursor
+    printf "\e[1v" # [esc] hide cursor
     cpu_stat $count
     printf "\e[u" # [esc] RCP: restore saved cursor position
     printf "\e[>5l" # [esc] show cursor
+    printf "\e[25l" # [esc] show cursor
+    printf "\e[0v" # [esc] show cursor
+    printf "\eW" # [esc] EPA
     sleep ${INTERVAL_SEC}
     #echo
 done
