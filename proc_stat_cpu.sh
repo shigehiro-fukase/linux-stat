@@ -9,6 +9,17 @@
 
 [ -z "${INTERVAL_SEC}" ] && INTERVAL_SEC=1
 
+_retval=
+retval() {
+    _retval=($*)
+}
+time_diff() {
+    local stime=$1;
+    local etime=$2;
+    let local dtime=(${etime} - ${stime});
+    #echo ${dtime}
+    retval ${dtime}
+}
 # $1: previous (backup) value
 # $2: current value
 calc_per() {
@@ -24,15 +35,28 @@ calc_per() {
     else
         per="${int}.${dec}"
     fi
-    echo ${per}
+    #echo ${per}
+    retval ${per}
 }
+
+CSICUU="\e[%uA"         # [esc] move cursor up N line
+CSICPL="\e[%uF"         # [esc] move cursor up N line head
+DECTCEMS="\e[?25h"      # [esc] DECSET DECTCEM show cursor
+DECTCEMR="\e[?25l"      # [esc] DECRST DECTCEM hide cursor
+CSIED1="\e[1J"          # [esc] clear screen top to cursor
+CSIED2="\e[2J"          # [esc] clear screen
+CSIEL0="\e[0K"          # [esc] clear cursor pos to end of line
+NL="${CSIEL0}\n"        # new line
+
 cpu_stat() {
     local datetime=$( date --rfc-3339='ns' )
     local linenum
     eval $(
          awk '{if($1 ~ /^cpu/) print "linenum="NR" "$1"=( "$2" "$3" "$4" "$5" "$6" "$7" "$8" )"}' /proc/stat
     )
-    let local num_cpu=(${linenum}-1)
+    local SCRBUF=""
+    SCRBUF="${SCRBUF}${DECTCEMR}" # hide cursor
+
     for ((i=0; i < ${linenum}; i++)); do
         let local n=(${i} - 1)
         local -a cur_cpu
@@ -48,34 +72,41 @@ cpu_stat() {
         #echo "bak_cpu[$i](${#bak_cpu[@]})=( ${bak_cpu[@]} )"
         #echo "cur_cpu[$i](${#cur_cpu[@]})=( ${cur_cpu[@]} )"
 
-        let local diff_user=(${cur_cpu[0]} - ${bak_cpu[0]})
-        let local diff_nice=(${cur_cpu[1]} - ${bak_cpu[1]})
-        let local diff_sys=(${cur_cpu[2]} - ${bak_cpu[2]})
-        let local diff_idle=(${cur_cpu[3]} - ${bak_cpu[3]})
-        let local diff_iowait=(${cur_cpu[4]} - ${bak_cpu[4]})
-        let local diff_irq=(${cur_cpu[5]} - ${bak_cpu[5]})
-        let local diff_softirq=(${cur_cpu[6]} - ${bak_cpu[6]})
-        let local total=( ${diff_user} + ${diff_nice} + ${diff_sys} + ${diff_idle} + ${diff_iowait} + ${diff_irq} + ${diff_softirq} )
+        time_diff ${bak_cpu[0]} ${cur_cpu[0]}; local diff_user=${_retval};
+        time_diff ${bak_cpu[1]} ${cur_cpu[1]}; local diff_nice=${_retval};
+        time_diff ${bak_cpu[2]} ${cur_cpu[2]}; local diff_sys=${_retval};
+        time_diff ${bak_cpu[3]} ${cur_cpu[3]}; local diff_idle=${_retval};
+        time_diff ${bak_cpu[4]} ${cur_cpu[4]}; local diff_iowait=${_retval};
+        time_diff ${bak_cpu[5]} ${cur_cpu[5]}; local diff_irq=${_retval};
+        time_diff ${bak_cpu[6]} ${cur_cpu[6]}; local diff_softirq=${_retval};
+        let local total=$(( ${diff_user} + ${diff_nice} + ${diff_sys} + ${diff_idle} + ${diff_iowait} + ${diff_irq} + ${diff_softirq} ))
+
         if [ ${total} -ne 0 ]; then
-            local user=$( calc_per ${bak_cpu[0]} ${cur_cpu[0]} ${total} )
-            local nice=$( calc_per ${bak_cpu[1]} ${cur_cpu[1]} ${total} )
-            local sys=$( calc_per ${bak_cpu[2]} ${cur_cpu[2]} ${total} )
-            local idle=$( calc_per ${bak_cpu[3]} ${cur_cpu[3]} ${total} )
-            local iowait=$( calc_per ${bak_cpu[4]} ${cur_cpu[4]} ${total} )
-            local irq=$( calc_per ${bak_cpu[5]} ${cur_cpu[5]} ${total} )
-            local softirq=$( calc_per ${bak_cpu[6]} ${cur_cpu[6]} ${total} )
+            calc_per ${bak_cpu[0]} ${cur_cpu[0]} ${total} ; local user=${_retval}
+            calc_per ${bak_cpu[1]} ${cur_cpu[1]} ${total} ; local nice=${_retval}
+            calc_per ${bak_cpu[2]} ${cur_cpu[2]} ${total} ; local sys=${_retval}
+            calc_per ${bak_cpu[3]} ${cur_cpu[3]} ${total} ; local idle=${_retval}
+            calc_per ${bak_cpu[4]} ${cur_cpu[4]} ${total} ; local iowait=${_retval}
+            calc_per ${bak_cpu[5]} ${cur_cpu[5]} ${total} ; local irq=${_retval}
+            calc_per ${bak_cpu[6]} ${cur_cpu[6]} ${total} ; local softirq=${_retval}
 
             if [ ${i} -eq 0 ]; then
-                printf "\e[%uA${datetime}\n" $((${linenum}+2)) # [esc] move cursor line up + show datetime
-                printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s\n" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
-                printf "ALL(${num_cpu}) %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                SCRBUF="${SCRBUF}$(printf "${CSICPL}" $((${linenum}+2)))" # [esc] move cursor up N line head
+                SCRBUF="${SCRBUF}${CSIED1}" # clear screen top to cursor
+                SCRBUF="${SCRBUF}${datetime}${NL}" # show datetime
+                SCRBUF=${SCRBUF}$(printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq")${NL}
+                let local num_cpu=(${linenum}-1)
+                SCRBUF=${SCRBUF}$(printf "ALL(${num_cpu}) %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq})${NL}
             else
-                printf "CPU[$n] %6s%% %6s%% %6s%% %6s%% %6s%% %6s%% %6s%%\n" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                SCRBUF=${SCRBUF}$(printf "CPU[$n] %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq})${NL}
             fi
         fi
 
         eval "BAK_CPU${i}=( ${cur_cpu[@]} )"
     done
+    SCRBUF="${SCRBUF}${CSIEL0}"
+    SCRBUF="${SCRBUF}${DECTCEMS}" # show cursor
+    printf "${SCRBUF}"
 }
 
 # "\e[?47h"     DECSET XT_ALTSCRN swap to alt screen buffer
