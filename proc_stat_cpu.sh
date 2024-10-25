@@ -4,10 +4,12 @@
 
 # gloval variables (parameter)
 #   INTERVAL_SEC:   sleep every loop
+#   HIDE_CURSOR:    0:show !0:hide cursor
 
 # [ -z "${CONFIG_INTERVAL_DEFAULT}" ] && CONFIG_INTERVAL_DEFAULT=0.1
 [ -z "${CONFIG_INTERVAL_DEFAULT}" ] && CONFIG_INTERVAL_DEFAULT=1
 [ -z "${CONFIG_HIDE_CURSOR}" ] && CONFIG_HIDE_CURSOR=1
+[ -z "${HIDE_CURSOR}" ] && HIDE_CURSOR=${CONFIG_HIDE_CURSOR}
 [ -z "${INTERVAL_SEC}" ] && INTERVAL_SEC=${CONFIG_INTERVAL_DEFAULT}
 
 _retval=
@@ -108,7 +110,7 @@ cpu_stat() {
 
         eval "BAK_CPU${i}=( ${cur_cpu[@]} )"
     done
-    [ ${CONFIG_HIDE_CURSOR} -ne 0 ] && SCRBUF="${SCRBUF}${CSIEL0}" || SCRBUF="${SCRBUF}${CSIEL0}${DECTCEMS}" # show cursor
+    [ ${HIDE_CURSOR} -ne 0 ] && SCRBUF="${SCRBUF}${CSIEL0}" || SCRBUF="${SCRBUF}${CSIEL0}${DECTCEMS}" # show cursor
     printf "${SCRBUF}" # update screen
     SCRBUF=""
 }
@@ -137,7 +139,7 @@ trap 'exit_handler' INT TERM
 
 altscrn_enter   # Enter to ALT screen
 
-[ ${CONFIG_HIDE_CURSOR} -ne 0 ] && printf "${DECTCEMR}" # hide cursor
+[ ${HIDE_CURSOR} -ne 0 ] && printf "${DECTCEMR}" # hide cursor
 for ((count=0; ; count++));  do
     cpu_stat $count
     sleep ${INTERVAL_SEC}
