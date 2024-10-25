@@ -2,12 +2,12 @@
 # SPDX-FileCopyrightText: 2024 Shigehiro Fukase <shigehiro.fukase@gmail.com>
 # SPDX-License-Identifier: MIT
 
-# gloval variables
+# gloval variables (parameter)
 #   INTERVAL_SEC:   sleep every loop
-#
-#   BAK_CPU:    Previous data
 
-[ -z "${INTERVAL_SEC}" ] && INTERVAL_SEC=1
+#INTERVAL_DEFAULT=0.1
+INTERVAL_DEFAULT=1
+[ -z "${INTERVAL_SEC}" ] && INTERVAL_SEC=${INTERVAL_DEFAULT}
 
 _retval=
 retval() {
@@ -40,7 +40,7 @@ calc_per() {
 }
 
 CSICUU="\e[%uA"         # [esc] move cursor up N line
-CSICPL="\e[%uF"         # [esc] move cursor up N line head
+CSICPL="\e[${Pn}F"      # [esc] move cursor up N line head
 DECTCEMS="\e[?25h"      # [esc] DECSET DECTCEM show cursor
 DECTCEMR="\e[?25l"      # [esc] DECRST DECTCEM hide cursor
 CSIED1="\e[1J"          # [esc] clear screen top to cursor
@@ -54,6 +54,9 @@ cpu_stat() {
     eval $(
          awk '{if($1 ~ /^cpu/) print "linenum="NR" "$1"=( "$2" "$3" "$4" "$5" "$6" "$7" "$8" )"}' /proc/stat
     )
+    let local num_cpu=(${linenum}-1)
+    Pn=$((${linenum}+2)) # CSICPL param
+    local LABEL_ALL="ALL(${num_cpu})"
     local SCRBUF=""
     SCRBUF="${SCRBUF}${DECTCEMR}" # hide cursor
 
@@ -91,12 +94,12 @@ cpu_stat() {
             calc_per ${bak_cpu[6]} ${cur_cpu[6]} ${total} ; local softirq=${_retval}
 
             if [ ${i} -eq 0 ]; then
-                SCRBUF="${SCRBUF}$(printf "${CSICPL}" $((${linenum}+2)))" # [esc] move cursor up N line head
-                SCRBUF="${SCRBUF}${CSIED1}" # clear screen top to cursor
-                SCRBUF="${SCRBUF}${datetime}${NL}" # show datetime
-                SCRBUF=${SCRBUF}$(printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq")${NL}
-                let local num_cpu=(${linenum}-1)
-                SCRBUF=${SCRBUF}$(printf "ALL(${num_cpu}) %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq})${NL}
+                # move cursor up N line head, clear screen top to cursor, show datetime
+                SCRBUF="${SCRBUF}${CSICPL}${CSIED1}${datetime}${NL}$(
+                    printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
+                )${NL}$(
+                    printf "${LABEL_ALL} %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                )${NL}"
             else
                 SCRBUF=${SCRBUF}$(printf "CPU[$n] %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq})${NL}
             fi
@@ -104,9 +107,9 @@ cpu_stat() {
 
         eval "BAK_CPU${i}=( ${cur_cpu[@]} )"
     done
-    SCRBUF="${SCRBUF}${CSIEL0}"
-    SCRBUF="${SCRBUF}${DECTCEMS}" # show cursor
-    printf "${SCRBUF}"
+    SCRBUF="${SCRBUF}${CSIEL0}${DECTCEMS}" # show cursor
+    printf "${SCRBUF}" # update screen
+    SCRBUF=""
 }
 
 # "\e[?47h"     DECSET XT_ALTSCRN swap to alt screen buffer
@@ -134,9 +137,7 @@ trap 'exit_handler' INT TERM
 altscrn_enter   # Enter to ALT screen
 
 for ((count=0; ; count++));  do
-    printf "\e[?25l" # [esc] DECRST DECTCEM hide cursor
     cpu_stat $count
-    printf "\e[?25h" # [esc] DECSET DECTCEM show cursor
     sleep ${INTERVAL_SEC}
 done
 
