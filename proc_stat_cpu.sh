@@ -44,11 +44,17 @@ calc_per() {
 
 CSICUU="\e[%uA"         # [esc] move cursor up N line
 CSICPL="\e[${Pn}F"      # [esc] move cursor up N line head
-DECTCEMS="\e[?25h"      # [esc] DECSET DECTCEM show cursor
-DECTCEMR="\e[?25l"      # [esc] DECRST DECTCEM hide cursor
 CSIED1="\e[1J"          # [esc] clear screen top to cursor
 CSIED2="\e[2J"          # [esc] clear screen
 CSIEL0="\e[0K"          # [esc] clear cursor pos to end of line
+DECTCEMS="\e[?25h"      # [esc] DECSET DECTCEM show cursor
+DECTCEMR="\e[?25l"      # [esc] DECRST DECTCEM hide cursor
+DECALTSCRNS="\e[?47h"   # [esc] DECSET XT_ALTSCRN swap to alt screen buffer
+DECALTSCRNR="\e[?47l"   # [esc] DECRST XT_ALTSCRN swap to normal screen buffer
+DECALTS47S="\e[?1047h"  # [esc] DECSET XT_ALTS_47 swap to alt screen buffer
+DECALTS47R="\e[?1047l"  # [esc] DECRST XT_ALTS_47 clear screen, swap to normal screen buffer
+DECEXTSCRNS="\e[?1049h" # [esc] DECSET XT_EXTSCRN save cursor pos, swap to alt screen buffer, clear screen
+DECEXTSCRNR="\e[?1049l" # [esc] DECRST XT_EXTSCRN clear screen, swap to normal screen buffer, restore cursor pos
 NL="${CSIEL0}\n"        # new line
 
 cpu_stat() {
@@ -115,19 +121,11 @@ cpu_stat() {
     SCRBUF=""
 }
 
-# "\e[?47h"     DECSET XT_ALTSCRN swap to alt screen buffer
-# "\e[?1047h"   DECSET XT_ALTS_47 swap to alt screen buffer
-# "\e[?1049h"   DECSET XT_EXTSCRN save cursor pos, swap to alt screen buffer, clear screen
-# "\e[2J"       clear screen
 altscrn_enter() {
-    printf "\e[?1049h" # swap to alt screen buffer, clear screen
+    printf "${DECEXTSCRNS}" # swap to alt screen buffer, clear screen
 }
-# "\e[?25h"     DECTCEM show cursor
-# "\e[?47l"     DECRST XT_ALTSCRN swap to normal screen buffer
-# "\e[?1047l"   DECRST XT_ALTS_47 clear screen, swap to normal screen buffer
-# "\e[?1049l"   DECRST XT_EXTSCRN clear screen, swap to normal screen buffer, restore cursor pos
 altscrn_exit() {
-    printf "\e[?25h\e[?1049l" # show cursor, swap to normal screen buffer
+    printf "${DECTCEMS}${DECEXTSCRNR}" # show cursor, swap to normal screen buffer
 }
 exit_handler() {
     altscrn_exit
