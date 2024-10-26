@@ -41,32 +41,118 @@ calc_per() {
     retval ${per}
 }
 
-CSIICH="\e[${Ps}@"      # Insert Ps (Blank) Character(s) (default = 1)
-CSIICH="\e[${Ps} @"     # Shift left Ps columns(s) (default = 1) (SL), ECMA-48.
-CSICUU="\e[${Ps}A"      # Cursor Up Ps Times (default = 1)
-CSICUU="\e[${Ps} A"     # Shift right Ps columns(s) (default = 1) (SR), ECMA-48.
-CSICUD="\e[${Ps}B"      # Cursor Down Ps Times (default = 1)
-CSICUF="\e[${Ps}C"      # Cursor Forward Ps Times (default = 1)
-CSICUB="\e[${Ps}D"      # Cursor Backward Ps Times (default = 1)
-CSICNL="\e[${Ps}E"      # Cursor Next Line Ps Times (default = 1)
-CSICPL="\e[${Ps}F"      # Cursor Preceding Line Ps Times (default = 1)
-CSICHA="\e[${Ps}G"      # Cursor Character Absolute  [column] (default = [row,1])
-CSICUP="\e[${Ps1};${Ps2}H" # Cursor Position [row;column] (default = [1,1])
-CSICUPBL="\e[999;1H"    # set cursor pos bottom left of screen
-CSICHT="\e[${Ps}I"      # move cursor up N line head
-CSIED="\e[${Ps}J"       # erase screen
-CSIED1="\e[1J"          # clear screen top to cursor
-CSIED2="\e[2J"          # clear screen
-CSIEL0="\e[0K"          # clear cursor pos to end of line
-DECTCEMS="\e[?25h"      # DECSET DECTCEM show cursor
-DECTCEMR="\e[?25l"      # DECRST DECTCEM hide cursor
-DECALTSCRNS="\e[?47h"   # DECSET XT_ALTSCRN swap to alt screen buffer
-DECALTSCRNR="\e[?47l"   # DECRST XT_ALTSCRN swap to normal screen buffer
-DECALTS47S="\e[?1047h"  # DECSET XT_ALTS_47 swap to alt screen buffer
-DECALTS47R="\e[?1047l"  # DECRST XT_ALTS_47 clear screen, swap to normal screen buffer
-DECEXTSCRNS="\e[?1049h" # DECSET XT_EXTSCRN save cursor pos, swap to alt screen buffer, clear screen
-DECEXTSCRNR="\e[?1049l" # DECRST XT_EXTSCRN clear screen, swap to normal screen buffer, restore cursor pos
-NL="${CSIEL0}\n"        # new line
+#CSIICH="\e[${Ps}@"		# Insert Ps (Blank) Character(s) (default = 1)
+#CSISL="\e[${Ps} @"		# Shift left Ps columns(s) (default = 1) (SL), ECMA-48.
+#CSICUU="\e[${Ps}A"		# Cursor Up Ps Times (default = 1)
+#CSISR="\e[${Ps} A"		# Shift right Ps columns(s) (default = 1) (SR), ECMA-48.
+#CSICUD="\e[${Ps}B"		# Cursor Down Ps Times (default = 1)
+#CSICUF="\e[${Ps}C"		# Cursor Forward Ps Times (default = 1)
+#CSICUB="\e[${Ps}D"		# Cursor Backward Ps Times (default = 1)
+#CSICNL="\e[${Ps}E"		# Cursor Next Line Ps Times (default = 1)
+CSICPL="\e[${Ps}F"		# Cursor Preceding Line Ps Times (default = 1)
+#CSICHA="\e[${Ps}G"		# Cursor Character Absolute	[column] (default = [row,1])
+#CSICUP="\e[${Ps1};${Ps2}H"	# Cursor Position [row;column] (default = [1,1])
+CSICUPBL="\e[999;1H"		# set cursor pos bottom left of screen
+#CSICHT="\e[${Ps}I"		# Cursor Forward Tabulation Ps tab stops (default = 1)
+#CSIED="\e[${Ps}J"		# Erase in Display (ED)
+#CSIED0="\e[0J"			# Ps=0 -> Erase Below (default).
+CSIED1="\e[1J"			# Ps=1 -> Erase Above.
+#CSIED2="\e[2J"			# Ps=2 -> Erase All.
+#CSIED3="\e[3J"			# Ps=3 -> Erase Saved Lines
+CSIEL="\e[${Ps}K"		# Erase in Line (DECSEL)
+CSIEL0="\e[0K"			# Ps=0 -> Selective Erase to Right (default).
+#CSIEL1="\e[1K"			# Ps=1 -> Selective Erase to Left.
+#CSIEL2="\e[2K"			# Ps=2 -> Selective Erase All.
+#CSIIL="\e[${Ps}L"		# Insert Ps Line(s) (default = 1)
+#CSIDL="\e[${Ps}M"		# Delete Ps Line(s) (default = 1)
+#CSIDCH="\e[${Ps}P"		# Delete Ps Character(s) (default = 1)
+
+# CSI ? Pm h DEC Private Mode Set (DECSET)
+# CSI ? Pm l DEC Private Mode Reset (DECRST)
+# Ps = 1  ->  Application Cursor Keys (DECCKM)
+# Ps = 2  ->  Designate USASCII for character sets G0-G3 (DECANM)
+# Ps = 3  ->  132 Column Mode (DECCOLM)
+# Ps = 4  ->  Smooth (Slow) Scroll (DECSCLM)
+# Ps = 5  ->  Reverse Video (DECSCNM)
+# Ps = 6  ->  Origin Mode (DECOM)
+# Ps = 7  ->  Auto-Wrap Mode (DECAWM)
+# Ps = 8  ->  Auto-Repeat Keys (DECARM)
+# Ps = 9  ->  Send Mouse X & Y on button press
+# Ps = 10  ->  Show toolbar (rxvt)
+# Ps = 12  ->  Start blinking cursor (AT&T 610)
+# Ps = 13  ->  Start blinking cursor (set only via resource or menu)
+# Ps = 14  ->  Enable XOR of blinking cursor control sequence and menu
+# Ps = 18  ->  Print Form Feed (DECPFF)
+# Ps = 19  ->  Set print extent to full screen (DECPEX)
+# Ps = 25  ->  Show cursor (DECTCEM)
+DECTCEMS="\e[?25h"		# DECSET DECTCEM show cursor
+DECTCEMR="\e[?25l"		# DECRST DECTCEM hide cursor
+# Ps = 30  ->  Show scrollbar (rxvt)
+# Ps = 35  ->  Enable font-shifting functions (rxvt)
+# Ps = 38  ->  Enter Tektronix mode (DECTEK)
+# Ps = 40  ->  Allow 80 ⇒  132 mode
+# Ps = 41  ->  more(1) fix (see curses resource)
+# Ps = 42  ->  Enable National Replacement Character sets (DECNRCM)
+# Ps = 43  ->  Enable Graphic Expanded Print Mode (DECGEPM)
+# Ps = 44  ->  Turn on margin bell
+# Ps = 44  ->  Enable Graphic Print Color Mode (DECGPCM)
+# Ps = 45  ->  Reverse-wraparound mode (XTREVWRAP)
+# Ps = 45  ->  Enable Graphic Print Color Syntax (DECGPCS)
+# Ps = 46  ->  Start logging (XTLOGGING)
+# Ps = 46  ->  Graphic Print Background Mode
+# Ps = 47  ->  Use Alternate Screen Buffer
+DECALTSCRNS="\e[?47h"		# DECSET XT_ALTSCRN swap to alt screen buffer
+DECALTSCRNR="\e[?47l"		# DECRST XT_ALTSCRN swap to normal screen buffer
+# Ps = 47  ->  Enable Graphic Rotated Print Mode (DECGRPM)
+# Ps = 66  ->  Application keypad mode (DECNKM)
+# Ps = 67  ->  Backarrow key sends backspace (DECBKM)
+# Ps = 69  ->  Enable left and right margin mode (DECLRMM)
+# Ps = 80  ->  Enable Sixel Display Mode (DECSDM)
+# Ps = 95  ->  Do not clear screen when DECCOLM is set/reset (DECNCSM)
+# Ps = 1000  ->  Send Mouse X & Y on button press and release
+# Ps = 1001  ->  Use Hilite Mouse Tracking
+# Ps = 1002  ->  Use Cell Motion Mouse Tracking
+# Ps = 1003  ->  Use All Motion Mouse Tracking
+# Ps = 1004  ->  Send FocusIn/FocusOut events
+# Ps = 1006  ->  Enable SGR Mouse Mode
+# Ps = 1007  ->  Enable Alternate Scroll Mode
+# Ps = 1010  ->  Scroll to bottom on tty output (rxvt)
+# Ps = 1011  ->  Scroll to bottom on key press (rxvt)
+# Ps = 1014  ->  Enable fastScroll resource
+# Ps = 1015  ->  Enable urxvt Mouse Mode
+# Ps = 1016  ->  Enable SGR Mouse PixelMode
+# Ps = 1034  ->  Interpret "meta" key, xter
+# Ps = 1035  ->  Enable special modifiers for Alt and NumLock keys
+# Ps = 1036  ->  Send ESC   when Meta modifies a key
+# Ps = 1037  ->  Send DEL from the editing-keypad Delete key
+# Ps = 1039  ->  Send ESC  when Alt modifies a key
+# Ps = 1040  ->  Keep selection even if not highlighted
+# Ps = 1041  ->  Use the CLIPBOARD selection
+# Ps = 1042  ->  Enable Urgency window manager hint when Control-G is received
+# Ps = 1043  ->  Enable raising of the window when Control-G is received
+# Ps = 1044  ->  Reuse the most recent data copied to CLIPBOARD
+# Ps = 1045  ->  Extended Reverse-wraparound mode (XTREVWRAP2)
+# Ps = 1046  ->  Enable switching to/from Alternate Screen Buffer
+# Ps = 1047  ->  Use Alternate Screen Buffer
+DECALTS47S="\e[?1047h"		# DECSET XT_ALTS_47 swap to alt screen buffer
+DECALTS47R="\e[?1047l"		# DECRST XT_ALTS_47 clear screen, swap to normal screen buffer
+# Ps = 1048  ->  Save cursor as in DECSC
+# Ps = 1049  ->  Save cursor as in DECSC
+DECEXTSCRNS="\e[?1049h"		# DECSET XT_EXTSCRN save cursor pos, swap to alt screen buffer, clear screen
+DECEXTSCRNR="\e[?1049l"		# DECRST XT_EXTSCRN clear screen, swap to normal screen buffer, restore cursor pos
+# Ps = 1050  ->  Set terminfo/termcap function-key mode
+# Ps = 1051  ->  Set Sun function-key mode
+# Ps = 1052  ->  Set HP function-key mode
+# Ps = 1053  ->  Set SCO function-key mode
+# Ps = 1060  ->  Set legacy keyboard emulation
+# Ps = 1061  ->  Set VT220 keyboard emulation
+# Ps = 2001  ->  Enable readline mouse button-1
+# Ps = 2002  ->  Enable readline mouse button-2
+# Ps = 2003  ->  Enable readline mouse button-3
+# Ps = 2004  ->  Set bracketed paste mode
+# Ps = 2005  ->  Enable readline character-quoting
+# Ps = 2006  ->  Enable readline newline pasting
+NL="${CSIEL0}\n"		# new line
 
 cpu_stat() {
     local datetime=$( date --rfc-3339='ns' )
