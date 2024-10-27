@@ -5,10 +5,12 @@
 # gloval variables (parameter)
 #   INTERVAL_SEC:   sleep every loop
 #   HIDE_CURSOR:    0:show !0:hide cursor
+#   VIEW_POS:       0:top-left 1:bottom-left
 
 # [ -z "${INTERVAL}" ] && INTERVAL=0.1
 [ -z "${INTERVAL}" ] && INTERVAL=1
 [ -z "${HIDE_CURSOR}" ] && HIDE_CURSOR=1
+[ -z "${VIEW_POS}" ] && VIEW_POS=1
 [ -z "${INTERVAL_SEC}" ] && INTERVAL_SEC=${INTERVAL}
 
 _retval=
@@ -52,12 +54,13 @@ calc_per() {
 CSICPL="\e[${Ps}F"		# Cursor Preceding Line Ps Times (default = 1)
 #CSICHA="\e[${Ps}G"		# Cursor Character Absolute	[column] (default = [row,1])
 #CSICUP="\e[${Ps1};${Ps2}H"	# Cursor Position [row;column] (default = [1,1])
+CSICUPTL="\e[1;1H"		# set cursor pos top left of screen
 CSICUPBL="\e[999;1H"		# set cursor pos bottom left of screen
 #CSICHT="\e[${Ps}I"		# Cursor Forward Tabulation Ps tab stops (default = 1)
 #CSIED="\e[${Ps}J"		# Erase in Display (ED)
 #CSIED0="\e[0J"			# Ps=0 -> Erase Below (default).
 CSIED1="\e[1J"			# Ps=1 -> Erase Above.
-#CSIED2="\e[2J"			# Ps=2 -> Erase All.
+CSIED2="\e[2J"			# Ps=2 -> Erase All.
 #CSIED3="\e[3J"			# Ps=3 -> Erase Saved Lines
 CSIEL="\e[${Ps}K"		# Erase in Line (DECSEL)
 CSIEL0="\e[0K"			# Ps=0 -> Selective Erase to Right (default).
@@ -200,12 +203,21 @@ cpu_stat() {
             calc_per ${bak_cpu[6]} ${cur_cpu[6]} ${total} ; local softirq=${_retval}
 
             if [ ${i} -eq 0 ]; then
-                # move cursor up N line head, clear screen top to cursor, show datetime
-                SCRBUF="${SCRBUF}${CSICPL}${CSIED1}${datetime}${NL}$(
-                    printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
-                )${NL}$(
-                    printf "${LABEL_ALL} %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
-                )${NL}"
+                if [ ${VIEW_POS} -eq 0 ]; then
+                    # move cursor top-left of screen, clear screen, show datetime
+                    SCRBUF="${SCRBUF}${CSICUPTL}${CSIED2}${datetime}${NL}$(
+                        printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
+                    )${NL}$(
+                        printf "${LABEL_ALL} %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                    )${NL}"
+                else
+                    # move cursor up N line head, clear screen top to cursor, show datetime
+                    SCRBUF="${SCRBUF}${CSICPL}${CSIED1}${datetime}${NL}$(
+                        printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
+                    )${NL}$(
+                        printf "${LABEL_ALL} %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                    )${NL}"
+                fi
             else
                 SCRBUF=${SCRBUF}$(printf "CPU[$n] %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq})${NL}
             fi
@@ -233,7 +245,7 @@ trap 'exit_handler' EXIT
 trap 'exit_handler' INT TERM
 
 altscrn_enter   # Enter to ALT screen
-printf "${CSICUPBL}" # set cursor pos bottom left of screen
+[ ${VIEW_POS} -eq 0 ] && printf "${CSICUPTL}" || printf "${CSICUPBL}" # set cursor pos
 
 [ ${HIDE_CURSOR} -ne 0 ] && printf "${DECTCEMR}" # hide cursor
 for ((count=0; ; count++));  do
