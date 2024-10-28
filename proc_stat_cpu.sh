@@ -6,12 +6,14 @@
 #   INTERVAL_SEC:   sleep every loop
 #   HIDE_CURSOR:    0:show !0:hide cursor
 #   VIEW_POS:       0:top-left 1:bottom-left
+#   USE_BC:         use `bc` command, calculate by float
 
 # [ -z "${INTERVAL}" ] && INTERVAL=0.1
 [ -z "${INTERVAL}" ] && INTERVAL=1
 [ -z "${HIDE_CURSOR}" ] && HIDE_CURSOR=1
 [ -z "${VIEW_POS}" ] && VIEW_POS=1
 [ -z "${INTERVAL_SEC}" ] && INTERVAL_SEC=${INTERVAL}
+[ -z "${USE_BC}" ] && USE_BC=0
 
 _retval=
 retval() {
@@ -29,15 +31,19 @@ time_diff() {
 calc_per() {
     let local diff=($2-$1)
     local total=$3
-    let local int=( $(( $(( ${diff}*10000 )) /${total} )) /100 )
-    let local dec=( $(( $(( ${diff}*10000 )) /${total} )) %100 )
     local per=""
-    if [ ${dec} -eq 0 ]; then
-        per="${int}.00"
-    elif [ ${dec} -lt 10 ]; then
-        per="${int}.0${dec}"
+    if [ ${USE_BC} -eq 0 ]; then
+        let local int=( $(( $(( ${diff}*10000 )) /${total} )) /100 )
+        let local dec=( $(( $(( ${diff}*10000 )) /${total} )) %100 )
+        if [ ${dec} -eq 0 ]; then
+            per="${int}.00"
+        elif [ ${dec} -lt 10 ]; then
+            per="${int}.0${dec}"
+        else
+            per="${int}.${dec}"
+        fi
     else
-        per="${int}.${dec}"
+        per=$( echo "scale=2; ((${diff}*10000)/${total})/100" | bc | awk '{printf "%.2f", $0}' )
     fi
     #echo ${per}
     retval ${per}
