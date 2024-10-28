@@ -211,21 +211,20 @@ cpu_stat() {
             if [ ${i} -eq 0 ]; then
                 if [ ${VIEW_POS} -eq 0 ]; then
                     # move cursor top-left of screen, clear screen, show datetime
-                    SCRBUF="${SCRBUF}${CSICUPTL}${CSIED2}${datetime}${NL}$(
-                        printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
-                    )${NL}$(
-                        printf "${LABEL_ALL} %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
-                    )${NL}"
+                    SCRBUF="${SCRBUF}${CSICUPTL}${CSIED2}${datetime}${NL}"
                 else
                     # move cursor up N line head, clear screen top to cursor, show datetime
-                    SCRBUF="${SCRBUF}${CSICPL}${CSIED1}${datetime}${NL}$(
-                        printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
-                    )${NL}$(
-                        printf "${LABEL_ALL} %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
-                    )${NL}"
+                    SCRBUF="${SCRBUF}${CSICPL}${CSIED1}${datetime}${NL}"
                 fi
+                SCRBUF="${SCRBUF}$(
+                    printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
+                )${NL}$(
+                    printf "${LABEL_ALL} %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                )${NL}"
             else
-                SCRBUF=${SCRBUF}$(printf "CPU[$n] %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq})${NL}
+                SCRBUF=${SCRBUF}$(
+                    printf "CPU[$n] %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                )${NL}
             fi
         fi
 
