@@ -7,6 +7,7 @@
 #   HIDE_CURSOR:    0:show !0:hide cursor
 #   VIEW_POS:       0:top-left 1:bottom-left
 #   USE_BC:         use `bc` command, calculate by float
+#   CPU_GRAPH:      0:hide graph 1:show graph
 
 # [ -z "${INTERVAL}" ] && INTERVAL=0.1
 [ -z "${INTERVAL}" ] && INTERVAL=1
@@ -14,6 +15,7 @@
 [ -z "${VIEW_POS}" ] && VIEW_POS=1
 [ -z "${INTERVAL_SEC}" ] && INTERVAL_SEC=${INTERVAL}
 [ -z "${USE_BC}" ] && USE_BC=0
+[ -z "${CPU_GRAPH}" ] && CPU_GRAPH=1
 
 _retval=
 retval() {
@@ -163,17 +165,36 @@ DECEXTSCRNR="\e[?1049l"		# DECRST XT_EXTSCRN clear screen, swap to normal screen
 # Ps = 2006  ->  Enable readline newline pasting
 NL="${CSIEL0}\n"		# new line
 
+GRAPH_SCALE=(
+"100│"
+" 90│"
+" 80│"
+" 70│"
+" 60│"
+" 50│"
+" 40│"
+" 30│"
+" 20│"
+" 10│"
+"  0│"
+)
+
+SCRBUF=""
+linenum=0
 cpu_stat() {
     local datetime=$( date --rfc-3339='ns' )
-    local linenum
     eval $(
          awk '{if($1 ~ /^cpu/) print "linenum="NR" "$1"=( "$2" "$3" "$4" "$5" "$6" "$7" "$8" )"}' /proc/stat
     )
     let local num_cpu=(${linenum}-1)
-    Ps=$((${linenum}+2)) # CSICPL param
+
+    # CSICPL param
+    if [ ${CPU_GRAPH} -eq 0 ]; then
+        Ps=$((${linenum}+2))
+    else
+        Ps=$((${linenum}+2 +${#GRAPH_SCALE[@]}+1))
+    fi
     local LABEL_ALL="ALL(${num_cpu})"
-    local SCRBUF=""
-    SCRBUF="${SCRBUF}${DECTCEMR}" # hide cursor
 
     for ((i=0; i < ${linenum}; i++)); do
         let local n=(${i} - 1)
@@ -207,6 +228,8 @@ cpu_stat() {
             calc_per ${bak_cpu[4]} ${cur_cpu[4]} ${total} ; local iowait=${_retval}
             calc_per ${bak_cpu[5]} ${cur_cpu[5]} ${total} ; local irq=${_retval}
             calc_per ${bak_cpu[6]} ${cur_cpu[6]} ${total} ; local softirq=${_retval}
+            local used=$((100-${idle%%\.*}))
+            eval "USED${i}=${used}"
 
             if [ ${i} -eq 0 ]; then
                 if [ ${VIEW_POS} -eq 0 ]; then
@@ -230,9 +253,55 @@ cpu_stat() {
 
         eval "BAK_CPU${i}=( ${cur_cpu[@]} )"
     done
-    [ ${HIDE_CURSOR} -ne 0 ] && SCRBUF="${SCRBUF}${CSIEL0}" || SCRBUF="${SCRBUF}${CSIEL0}${DECTCEMS}" # show cursor
-    printf "${SCRBUF}" # update screen
-    SCRBUF=""
+    retval ${total}
+}
+cpu_graph() {
+    local total=$1
+    [ ${CPU_GRAPH} -eq 0 ] && return 0;
+    [ ${total} -eq 0 ] && return 0;
+    local graph=()
+    for ((i=0; i < ${#GRAPH_SCALE[@]}; i++)); do
+        graph[$i]="${GRAPH_SCALE[$i]}"
+        #printf "${graph[$i]}\n"
+    done
+    for ((i=0; i < ${linenum}; i++)); do
+        local used=( $(eval echo "\${USED${i}}") )
+        [ ${used} -gt 99 ] && used=99 # limit 99
+        local quotient=$((${used}/10))
+        local remainder=$((${used}%10))
+        local rc=""
+        if   [ ${remainder} -gt 8 ]; then rc="██│"
+        elif [ ${remainder} -gt 7 ]; then rc="▇▇│"
+        elif [ ${remainder} -gt 6 ]; then rc="▆▆│"
+        elif [ ${remainder} -gt 5 ]; then rc="▅▅│"
+        elif [ ${remainder} -gt 4 ]; then rc="▄▄│"
+        elif [ ${remainder} -gt 3 ]; then rc="▃▃│"
+        elif [ ${remainder} -gt 2 ]; then rc="▂▂│"
+        elif [ ${remainder} -gt 0 ]; then rc="▁▁│"
+        else rc="  │"
+        fi
+        [ ${i} -eq 0 ] && graph[10]="${graph[10]}AL│" || graph[10]="${graph[10]}C$((${i}-1))│"
+        #printf "USED[$i]=${used}(${quotient},${remainder} rc=$rc)\n"
+        for ((q=0; q < ${quotient}; q++)); do
+            graph[$((9-${q}))]="${graph[$((9-${q}))]}██│"
+        done
+        if [ $q -lt 9 ]; then
+            graph[$((9-${q}))]="${graph[$((9-${q}))]}${rc}"
+            q=$(($q+1))
+        fi
+        for ((; q < 9; q++)); do
+            graph[$((9-${q}))]="${graph[$((9-${q}))]}  │"
+        done
+        if [ ${used} -lt 10 ]; then
+            graph[0]="${graph[0]} ${used}│"
+        else
+            graph[0]="${graph[0]}${used}│"
+        fi
+    done
+    SCRBUF="${SCRBUF}\n"
+    for ((i=0; i < ${#GRAPH_SCALE[@]}; i++)); do
+        SCRBUF="${SCRBUF}${graph[$i]}\n"
+    done
 }
 
 altscrn_enter() {
@@ -254,7 +323,12 @@ altscrn_enter   # Enter to ALT screen
 
 [ ${HIDE_CURSOR} -ne 0 ] && printf "${DECTCEMR}" # hide cursor
 for ((count=0; ; count++));  do
+    SCRBUF=""
+    SCRBUF="${SCRBUF}${DECTCEMR}" # hide cursor
     cpu_stat $count
+    cpu_graph ${_retval} $count
+    printf "${SCRBUF}" # update screen
+    [ ${HIDE_CURSOR} -ne 0 ] && SCRBUF="${SCRBUF}${CSIEL0}" || SCRBUF="${SCRBUF}${CSIEL0}${DECTCEMS}" # show cursor
     sleep ${INTERVAL_SEC}
 done
 
