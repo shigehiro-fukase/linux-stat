@@ -7,6 +7,8 @@
 #   HIDE_CURSOR:    0:show !0:hide cursor
 #   VIEW_POS:       0:top-left 1:bottom-left
 #   USE_BC:         use `bc` command, calculate by float
+#   DATETIME:       0:hide datetime 1:show datetime
+#   CPU_STAT:       0:hide stat 1:show stat
 #   CPU_GRAPH:      0:hide graph 1:show graph
 
 # [ -z "${INTERVAL}" ] && INTERVAL=0.1
@@ -15,6 +17,8 @@
 [ -z "${VIEW_POS}" ] && VIEW_POS=1
 [ -z "${INTERVAL_SEC}" ] && INTERVAL_SEC=${INTERVAL}
 [ -z "${USE_BC}" ] && USE_BC=0
+[ -z "${DATETIME}" ] && DATETIME=1
+[ -z "${CPU_STAT}" ] && CPU_STAT=1
 [ -z "${CPU_GRAPH}" ] && CPU_GRAPH=1
 
 _retval=
@@ -189,11 +193,10 @@ cpu_stat() {
     let local num_cpu=(${linenum}-1)
 
     # CSICPL param
-    if [ ${CPU_GRAPH} -eq 0 ]; then
-        Ps=$((${linenum}+2))
-    else
-        Ps=$((${linenum}+2 +${#GRAPH_SCALE[@]}+1))
-    fi
+    Ps=0
+    [ ${DATETIME} -ne 0 ] && Ps=$((${Ps}+1))
+    [ ${CPU_STAT} -ne 0 ] && Ps=$((${Ps}+${linenum}+1))
+    [ ${CPU_GRAPH} -ne 0 ] && Ps=$((${Ps}+${#GRAPH_SCALE[@]}+1))
     local LABEL_ALL="ALL(${num_cpu})"
 
     for ((i=0; i < ${linenum}; i++)); do
@@ -232,22 +235,22 @@ cpu_stat() {
             eval "USED${i}=${used}"
 
             if [ ${i} -eq 0 ]; then
-                if [ ${VIEW_POS} -eq 0 ]; then
-                    # move cursor top-left of screen, clear screen, show datetime
-                    SCRBUF="${SCRBUF}${CSICUPTL}${CSIED2}${datetime}${NL}"
-                else
-                    # move cursor up N line head, clear screen top to cursor, show datetime
-                    SCRBUF="${SCRBUF}${CSICPL}${CSIED1}${datetime}${NL}"
+                if [ ${DATETIME} -ne 0 ]; then
+                    SCRBUF="${SCRBUF}${datetime}${NL}" # show datetime
                 fi
-                SCRBUF="${SCRBUF}$(
-                    printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
-                )${NL}$(
-                    printf "${LABEL_ALL} %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
-                )${NL}"
-            else
-                SCRBUF=${SCRBUF}$(
-                    printf "CPU[$n] %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
-                )${NL}
+            fi
+            if [ ${CPU_STAT} -ne 0 ]; then
+                if [ ${i} -eq 0 ]; then
+                    SCRBUF="${SCRBUF}$(
+                        printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
+                    )${NL}$(
+                        printf "${LABEL_ALL} %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                    )${NL}"
+                else
+                    SCRBUF=${SCRBUF}$(
+                        printf "CPU[$n] %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                    )${NL}
+                fi
             fi
         fi
 
@@ -325,6 +328,13 @@ altscrn_enter   # Enter to ALT screen
 for ((count=0; ; count++));  do
     SCRBUF=""
     SCRBUF="${SCRBUF}${DECTCEMR}" # hide cursor
+    if [ ${VIEW_POS} -eq 0 ]; then
+        # move cursor top-left of screen, clear screen
+        SCRBUF="${SCRBUF}${CSICUPTL}${CSIED2}"
+    else
+        # move cursor up N line head, clear screen top to cursor
+        SCRBUF="${SCRBUF}${CSICPL}${CSIED1}"
+    fi
     cpu_stat $count
     cpu_graph ${_retval} $count
     printf "${SCRBUF}" # update screen
