@@ -269,9 +269,10 @@ cpu_graph() {
     done
     for ((i=0; i < ${linenum}; i++)); do
         local used=( $(eval echo "\${USED${i}}") )
-        [ ${used} -gt 99 ] && used=99 # limit 99
-        local quotient=$((${used}/10))
-        local remainder=$((${used}%10))
+        local used99=${used}
+        [ ${used99} -gt 99 ] && used99=99 || used99=${used} # limit 99
+        local quotient=$((${used99}/10))
+        local remainder=$((${used99}%10))
         local rc=""
         if   [ ${remainder} -gt 8 ]; then rc="██│"
         elif [ ${remainder} -gt 7 ]; then rc="▇▇│"
@@ -284,7 +285,7 @@ cpu_graph() {
         else rc="  │"
         fi
         [ ${i} -eq 0 ] && graph[10]="${graph[10]}AL│" || graph[10]="${graph[10]}C$((${i}-1))│"
-        #printf "USED[$i]=${used}(${quotient},${remainder} rc=$rc)\n"
+        #printf "USED[$i]=${used99}(${quotient},${remainder} rc=$rc)\n"
         for ((q=0; q < ${quotient}; q++)); do
             graph[$((9-${q}))]="${graph[$((9-${q}))]}██│"
         done
@@ -295,10 +296,12 @@ cpu_graph() {
         for ((; q < 9; q++)); do
             graph[$((9-${q}))]="${graph[$((9-${q}))]}  │"
         done
-        if [ ${used} -lt 10 ]; then
-            graph[0]="${graph[0]} ${used}│"
+        if [ ${used} -gt 99 ]; then
+            graph[0]="${graph[0]}▁▁│"
+        elif [ ${used99} -lt 10 ]; then
+            graph[0]="${graph[0]} ${used99}│"
         else
-            graph[0]="${graph[0]}${used}│"
+            graph[0]="${graph[0]}${used99}│"
         fi
     done
     SCRBUF="${SCRBUF}\n"
