@@ -10,6 +10,7 @@
 #   DATETIME:       0:hide datetime 1:show datetime
 #   CPU_STAT:       0:hide stat 1:show stat
 #   CPU_GRAPH:      0:hide graph 1:show graph
+#   GRAPH_NUMPOS:   0:top 1:above the bar
 
 # [ -z "${INTERVAL}" ] && INTERVAL=0.1
 [ -z "${INTERVAL}" ] && INTERVAL=1
@@ -20,6 +21,7 @@
 [ -z "${DATETIME}" ] && DATETIME=1
 [ -z "${CPU_STAT}" ] && CPU_STAT=1
 [ -z "${CPU_GRAPH}" ] && CPU_GRAPH=1
+[ -z "${GRAPH_NUMPOS}" ] && GRAPH_NUMPOS=1
 
 _retval=
 retval() {
@@ -286,22 +288,53 @@ cpu_graph() {
         fi
         [ ${i} -eq 0 ] && graph[10]="${graph[10]}AL│" || graph[10]="${graph[10]}C$((${i}-1))│"
         #printf "USED[$i]=${used99}(${quotient},${remainder} rc=$rc)\n"
+
+        # Quotient part of the bar
         for ((q=0; q < ${quotient}; q++)); do
             graph[$((9-${q}))]="${graph[$((9-${q}))]}██│"
         done
+        # Remainder part of the bar
         if [ $q -lt 9 ]; then
             graph[$((9-${q}))]="${graph[$((9-${q}))]}${rc}"
             q=$(($q+1))
         fi
-        for ((; q < 9; q++)); do
-            graph[$((9-${q}))]="${graph[$((9-${q}))]}  │"
-        done
-        if [ ${used} -gt 99 ]; then
-            graph[0]="${graph[0]}▁▁│"
-        elif [ ${used99} -lt 10 ]; then
-            graph[0]="${graph[0]} ${used99}│"
+        if [ ${GRAPH_NUMPOS} -eq 0 ]; then
+            for ((; q < 9; q++)); do
+                graph[$((9-${q}))]="${graph[$((9-${q}))]}  │"
+            done
+            if [ ${used} -gt 99 ]; then
+                graph[0]="${graph[0]}▁▁ "
+            elif [ ${used99} -lt 10 ]; then
+                graph[0]="${graph[0]} ${used99} "
+            else
+                graph[0]="${graph[0]}${used99} "
+            fi
         else
-            graph[0]="${graph[0]}${used99}│"
+            if [ ${used} -gt 99 ]; then
+                graph[0]="${graph[0]}▁▁ "
+            else
+                local pos=$((9-${q}))
+                local vl
+                local hl
+                if [ ${pos} -gt 0 ]; then
+                    vl="│"
+                    hl="__ "
+                else
+                    vl=" "
+                    hl=""
+                fi
+                if [ ${used99} -lt 10 ]; then
+                    graph[${pos}]="${graph[${pos}]} ${used99}${vl}"
+                else
+                    graph[${pos}]="${graph[${pos}]}${used99}${vl}"
+                fi
+                q=$(($q+1))
+                for ((; q < 9; q++)); do
+                    pos=$((9-${q}))
+                    graph[${pos}]="${graph[${pos}]}  │"
+                done
+                graph[0]="${graph[0]}${hl}"
+            fi
         fi
     done
     SCRBUF="${SCRBUF}\n"
