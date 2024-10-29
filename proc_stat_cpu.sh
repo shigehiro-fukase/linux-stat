@@ -318,7 +318,7 @@ cpu_graph() {
                 local hl
                 if [ ${pos} -gt 0 ]; then
                     vl="│"
-                    hl="__ "
+                    hl="⸏⸏ "
                 else
                     vl=" "
                     hl=""
