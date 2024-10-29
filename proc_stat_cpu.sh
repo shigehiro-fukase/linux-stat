@@ -183,6 +183,7 @@ GRAPH_SCALE=(
 " 20│"
 " 10│"
 "  0│"
+"   │"
 )
 
 SCRBUF=""
@@ -286,21 +287,21 @@ cpu_graph() {
         elif [ ${remainder} -gt 0 ]; then rc="▁▁│"
         else rc="  │"
         fi
-        [ ${i} -eq 0 ] && graph[10]="${graph[10]}AL│" || graph[10]="${graph[10]}C$((${i}-1))│"
+        [ ${i} -eq 0 ] && graph[11]="${graph[11]}AL│" || graph[11]="${graph[11]}C$((${i}-1))│"
         #printf "USED[$i]=${used99}(${quotient},${remainder} rc=$rc)\n"
 
         # Quotient part of the bar
         for ((q=0; q < ${quotient}; q++)); do
-            graph[$((9-${q}))]="${graph[$((9-${q}))]}██│"
+            graph[$((10-${q}))]="${graph[$((10-${q}))]}██│"
         done
         # Remainder part of the bar
-        if [ $q -lt 9 ]; then
-            graph[$((9-${q}))]="${graph[$((9-${q}))]}${rc}"
+        if [ $q -lt 10 ]; then
+            graph[$((10-${q}))]="${graph[$((10-${q}))]}${rc}"
             q=$(($q+1))
         fi
         if [ ${GRAPH_NUMPOS} -eq 0 ]; then
-            for ((; q < 9; q++)); do
-                graph[$((9-${q}))]="${graph[$((9-${q}))]}  │"
+            for ((; q < 10; q++)); do
+                graph[$((10-${q}))]="${graph[$((10-${q}))]}  │"
             done
             if [ ${used} -gt 99 ]; then
                 graph[0]="${graph[0]}▁▁ "
@@ -313,7 +314,7 @@ cpu_graph() {
             if [ ${used} -gt 99 ]; then
                 graph[0]="${graph[0]}▁▁ "
             else
-                local pos=$((9-${q}))
+                local pos=$((10-${q}))
                 local vl
                 local hl
                 if [ ${pos} -gt 0 ]; then
@@ -329,8 +330,8 @@ cpu_graph() {
                     graph[${pos}]="${graph[${pos}]}${used99}${vl}"
                 fi
                 q=$(($q+1))
-                for ((; q < 9; q++)); do
-                    pos=$((9-${q}))
+                for ((; q < 10; q++)); do
+                    pos=$((10-${q}))
                     graph[${pos}]="${graph[${pos}]}  │"
                 done
                 graph[0]="${graph[0]}${hl}"
