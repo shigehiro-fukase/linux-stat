@@ -172,18 +172,18 @@ DECEXTSCRNR="\e[?1049l"		# DECRST XT_EXTSCRN clear screen, swap to normal screen
 NL="${CSIEL0}\n"		# new line
 
 GRAPH_SCALE=(
-"100│"
-" 90│"
-" 80│"
-" 70│"
-" 60│"
-" 50│"
-" 40│"
-" 30│"
-" 20│"
-" 10│"
-"  0│"
-"   │"
+"100˾│"
+" 90˾│"
+" 80˾│"
+" 70˾│"
+" 60˾│"
+" 50˾│"
+" 40˾│"
+" 30˾│"
+" 20˾│"
+" 10˾│"
+"  0˾│"
+"    │"
 )
 
 SCRBUF=""
