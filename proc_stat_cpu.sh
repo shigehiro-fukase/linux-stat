@@ -396,17 +396,17 @@ cpu_graph() {
     else
         for ((i=0; i < ${#GRAPH_SCALE[@]}; i++)); do
             if [ $i -lt 3 ]; then
-                SCRBUF="${SCRBUF}${SGI_FgRed}${graph[$i]}\n"
+                SCRBUF="${SCRBUF}${SGI_BoldBright}${SGI_FgRed}${graph[$i]}\n"
             elif [ $i -lt 5 ]; then
-                SCRBUF="${SCRBUF}${SGI_FgMagenta}${graph[$i]}\n"
+                SCRBUF="${SCRBUF}${SGI_BoldBright}${SGI_FgMagenta}${graph[$i]}\n"
             elif [ $i -lt 7 ]; then
-                SCRBUF="${SCRBUF}${SGI_FgYellow}${graph[$i]}\n"
+                SCRBUF="${SCRBUF}${SGI_BoldBright}${SGI_FgYellow}${graph[$i]}\n"
             elif [ $i -lt 9 ]; then
-                SCRBUF="${SCRBUF}${SGI_FgGreen}${graph[$i]}\n"
+                SCRBUF="${SCRBUF}${SGI_BoldBright}${SGI_FgGreen}${graph[$i]}\n"
             elif [ $i -lt 11 ]; then
-                SCRBUF="${SCRBUF}${SGI_FgBlue}${graph[$i]}\n"
+                SCRBUF="${SCRBUF}${SGI_BoldBright}${SGI_FgBlue}${graph[$i]}\n"
             else
-                SCRBUF="${SCRBUF}${SGI_FgDefault}${graph[$i]}\n"
+                SCRBUF="${SCRBUF}${SGI_NoBoldBright}${SGI_FgDefault}${graph[$i]}\n"
             fi
         done
     fi
