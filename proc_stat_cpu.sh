@@ -462,6 +462,12 @@ altscrn_enter   # Enter to ALT screen
 
 [ ${HIDE_CURSOR} -ne 0 ] && printf "${DECTCEMR}" # hide cursor
 for ((count=0; ; count++));  do
+    key=""
+    read -n 1 -t 0.001 key
+    case "${key}" in
+        q) echo "bye!"; exit 0; break;;
+        *) ;;
+    esac
     SCRBUF=""
     SCRBUF="${SCRBUF}${DECTCEMR}" # hide cursor
     if [ ${VIEW_POS} -eq 0 ]; then
