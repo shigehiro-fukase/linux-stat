@@ -415,7 +415,7 @@ cpu_graph() {
                 if [ ${used99} -eq 0 ]; then
                     graph[${pos}]="${graph[${pos}]} ${color_fw} ${color_rwd}${vl}"
                 elif [ ${used99} -lt 10 ]; then
-                    graph[${pos}]="${graph[${pos}]} ${color_fw}${used99}${color_rwd}${vl}"
+                    graph[${pos}]="${graph[${pos}]}${color_fw}${used99}%%${color_rwd}${vl}"
                 else
                     graph[${pos}]="${graph[${pos}]}${color_fw}${used99}${color_rwd}${vl}"
                 fi
