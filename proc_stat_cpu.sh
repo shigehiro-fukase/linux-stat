@@ -221,6 +221,21 @@ SGI_BrightBgMagenta="\e[105m"	# Bright Background Magenta
 SGI_BrightBgCyan="\e[106m"	# Bright Background Cyan
 SGI_BrightBgWhite="\e[107m"	# Bright Background White
 
+Fg0=""
+FgR=""
+FgM=""
+FgY=""
+FgG=""
+FgB=""
+if [ ${GRAPH_COLOR} -ne 0 ]; then
+    Fg0="${SGI_NoBoldBright}${SGI_FgDefault}"
+    FgR="${SGI_BoldBright}${SGI_FgRed}"
+    FgM="${SGI_BoldBright}${SGI_FgMagenta}"
+    FgY="${SGI_BoldBright}${SGI_FgYellow}"
+    FgG="${SGI_BoldBright}${SGI_FgGreen}"
+    FgB="${SGI_BoldBright}${SGI_FgBlue}"
+fi
+
 GRAPH_SCALE=(
 "100˾│"
 " 90˾│"
@@ -311,10 +326,25 @@ cpu_stat() {
     done
     retval ${total}
 }
+color_per() {
+    local per=$1
+    local color=""
+    if [ ${GRAPH_COLOR} -ne 0 ]; then
+          if [ ${per} -lt 20 ]; then color="${FgB}"
+        elif [ ${per} -lt 40 ]; then color="${FgG}"
+        elif [ ${per} -lt 60 ]; then color="${FgY}"
+        elif [ ${per} -lt 80 ]; then color="${FgM}"
+        else                         color="${FgR}"
+        fi
+    fi
+    retval ${color}
+}
 cpu_graph() {
     local total=$1
     [ ${CPU_GRAPH} -eq 0 ] && return 0;
     [ ${total} -eq 0 ] && return 0;
+    local color_fw=""
+    local color_rwd=""
     local graph=()
     for ((i=0; i < ${#GRAPH_SCALE[@]}; i++)); do
         graph[$i]="${GRAPH_SCALE[$i]}"
@@ -341,6 +371,7 @@ cpu_graph() {
         #printf "USED[$i]=${used99}(${quotient},${remainder} rc=$rc)\n"
 
         # Quotient part of the bar
+        local pos
         for ((q=0; q < ${quotient}; q++)); do
             graph[$((10-${q}))]="${graph[$((10-${q}))]}██│"
         done
@@ -355,16 +386,20 @@ cpu_graph() {
             done
             if [ ${used} -gt 99 ]; then
                 graph[0]="${graph[0]}▁▁ "
-            elif [ ${used99} -lt 10 ]; then
-                graph[0]="${graph[0]} ${used99} "
             else
-                graph[0]="${graph[0]}${used99} "
+                color_per ${used99}; color_fw=${_retval}
+                color_per $((${q}*10)); color_rwd=${_retval}
+                if [ ${used99} -lt 10 ]; then
+                    graph[0]="${graph[0]} ${color_fw}${used99}${color_rwd} "
+                else
+                    graph[0]="${graph[0]}${color_fw}${used99}${color_rwd} "
+                fi
             fi
         else
             if [ ${used} -gt 99 ]; then
                 graph[0]="${graph[0]}▁▁ "
             else
-                local pos=$((10-${q}))
+                pos=$((10-${q}))
                 local vl
                 local hl
                 if [ ${pos} -gt 0 ]; then
@@ -374,10 +409,12 @@ cpu_graph() {
                     vl=" "
                     hl=""
                 fi
+                color_per ${used99}; color_fw=${_retval}
+                color_per $((${q}*10)); color_rwd=${_retval}
                 if [ ${used99} -lt 10 ]; then
-                    graph[${pos}]="${graph[${pos}]} ${used99}${vl}"
+                    graph[${pos}]="${graph[${pos}]} ${color_fw}${used99}${color_rwd}${vl}"
                 else
-                    graph[${pos}]="${graph[${pos}]}${used99}${vl}"
+                    graph[${pos}]="${graph[${pos}]}${color_fw}${used99}${color_rwd}${vl}"
                 fi
                 q=$(($q+1))
                 for ((; q < 10; q++)); do
@@ -395,19 +432,13 @@ cpu_graph() {
         done
     else
         for ((i=0; i < ${#GRAPH_SCALE[@]}; i++)); do
-            if [ $i -lt 3 ]; then
-                SCRBUF="${SCRBUF}${SGI_BoldBright}${SGI_FgRed}${graph[$i]}\n"
-            elif [ $i -lt 5 ]; then
-                SCRBUF="${SCRBUF}${SGI_BoldBright}${SGI_FgMagenta}${graph[$i]}\n"
-            elif [ $i -lt 7 ]; then
-                SCRBUF="${SCRBUF}${SGI_BoldBright}${SGI_FgYellow}${graph[$i]}\n"
-            elif [ $i -lt 9 ]; then
-                SCRBUF="${SCRBUF}${SGI_BoldBright}${SGI_FgGreen}${graph[$i]}\n"
-            elif [ $i -lt 11 ]; then
-                SCRBUF="${SCRBUF}${SGI_BoldBright}${SGI_FgBlue}${graph[$i]}\n"
+            if [ $i -eq $((${#GRAPH_SCALE[@]}-1)) ]; then
+                color_fw=${Fg0}
             else
-                SCRBUF="${SCRBUF}${SGI_NoBoldBright}${SGI_FgDefault}${graph[$i]}\n"
+                pos=$((${#GRAPH_SCALE[@]}-${i}-2))
+                color_per $((${pos}*10)); color_fw=${_retval}
             fi
+            SCRBUF="${SCRBUF}${color_fw}${graph[$i]}\n"
         done
     fi
 }
