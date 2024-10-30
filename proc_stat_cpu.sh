@@ -11,6 +11,7 @@
 #   CPU_STAT:       0:hide stat 1:show stat
 #   CPU_GRAPH:      0:hide graph 1:show graph
 #   GRAPH_NUMPOS:   0:top 1:above the bar
+#   GRAPH_COLOR:    0:no color 1:use color
 
 # [ -z "${INTERVAL}" ] && INTERVAL=0.1
 [ -z "${INTERVAL}" ] && INTERVAL=1
@@ -22,6 +23,7 @@
 [ -z "${CPU_STAT}" ] && CPU_STAT=1
 [ -z "${CPU_GRAPH}" ] && CPU_GRAPH=1
 [ -z "${GRAPH_NUMPOS}" ] && GRAPH_NUMPOS=1
+[ -z "${GRAPH_COLOR}" ] && GRAPH_COLOR=1
 
 _retval=
 retval() {
@@ -170,6 +172,54 @@ DECEXTSCRNR="\e[?1049l"		# DECRST XT_EXTSCRN clear screen, swap to normal screen
 # Ps = 2005  ->  Enable readline character-quoting
 # Ps = 2006  ->  Enable readline newline pasting
 NL="${CSIEL0}\n"		# new line
+
+SGI_Default="\e[0m"		# Default
+SGI_BoldBright="\e[1m"		# Bold/Bright
+SGI_NoBoldBright="\e[22m"	# No bold/bright
+SGI_Underline="\e[4m"		# Underline
+SGI_NoUnderline="\e[24m"	# No underline
+SGI_Negative="\e[7m"		# Negative
+SGI_Positive="\e[27m"		# Positive (No negative)
+SGI_FgBlack="\e[30m"		# Foreground Black
+SGI_FgRed="\e[31m"		# Foreground Red
+SGI_FgGreen="\e[32m"		# Foreground Green
+SGI_FgYellow="\e[33m"		# Foreground Yellow
+SGI_FgBlue="\e[34m"		# Foreground Blue
+SGI_FgMagenta="\e[35m"		# Foreground Magenta
+SGI_FgCyan="\e[36m"		# Foreground Cyan
+SGI_FgWhite="\e[37m"		# Foreground White
+SGI_FgExtended="\e[38m"		# Foreground Extended
+SGI_FgExRGB="\e[38;2;${r};${g};${b}m" # Set foreground color to RGB value specified
+SGI_FgExColor="\e[38;5;$Ps" 	# Set foreground color to <s> index in 88 or 256 color table
+SGI_FgDefault="\e[39m"		# Foreground Default
+SGI_BgBlack="\e[40m"		# Background Black
+SGI_BgRed="\e[41m"		# Background Red
+SGI_BgGreen="\e[42m"		# Background Green
+SGI_BgYellow="\e[43m"		# Background Yellow
+SGI_BgBlue="\e[44m"		# Background Blue
+SGI_BgMagenta="\e[45m"		# Background Magenta
+SGI_BgCyan="\e[46m"		# Background Cyan
+SGI_BgWhite="\e[47m"		# Background White
+SGI_BgExtended="\e[48m"		# Background Extended
+SGI_BgExRGB="\e[48;2;${r};${g};${b}m" # Set background color to RGB value specified
+SGI_BgExColor="\e[48;5;$Ps" 	# Set background color to <Ps> index in 88 or 256 color table
+SGI_BgDefault="\e[49m"		# Background Default
+SGI_BrightFgBlack="\e[90m"	# Bright Foreground Black
+SGI_BrightFgRed="\e[91m"	# Bright Foreground Red
+SGI_BrightFgGreen="\e[92m"	# Bright Foreground Green
+SGI_BrightFgYellow="\e[93m"	# Bright Foreground Yellow
+SGI_BrightFgBlue="\e[94m"	# Bright Foreground Blue
+SGI_BrightFgMagenta="\e[95m"	# Bright Foreground Magenta
+SGI_BrightFgCyan="\e[96m"	# Bright Foreground Cyan
+SGI_BrightFgWhite="\e[97m"	# Bright Foreground White
+SGI_BrightBgBlack="\e[100m"	# Bright Background Black
+SGI_BrightBgRed="\e[101m"	# Bright Background Red
+SGI_BrightBgGreen="\e[102m"	# Bright Background Green
+SGI_BrightBgYellow="\e[103m"	# Bright Background Yellow
+SGI_BrightBgBlue="\e[104m"	# Bright Background Blue
+SGI_BrightBgMagenta="\e[105m"	# Bright Background Magenta
+SGI_BrightBgCyan="\e[106m"	# Bright Background Cyan
+SGI_BrightBgWhite="\e[107m"	# Bright Background White
 
 GRAPH_SCALE=(
 "100˾│"
@@ -339,9 +389,27 @@ cpu_graph() {
         fi
     done
     SCRBUF="${SCRBUF}\n"
-    for ((i=0; i < ${#GRAPH_SCALE[@]}; i++)); do
-        SCRBUF="${SCRBUF}${graph[$i]}\n"
-    done
+    if [ ${GRAPH_COLOR} -eq 0 ]; then
+        for ((i=0; i < ${#GRAPH_SCALE[@]}; i++)); do
+            SCRBUF="${SCRBUF}${graph[$i]}\n"
+        done
+    else
+        for ((i=0; i < ${#GRAPH_SCALE[@]}; i++)); do
+            if [ $i -lt 3 ]; then
+                SCRBUF="${SCRBUF}${SGI_FgRed}${graph[$i]}\n"
+            elif [ $i -lt 5 ]; then
+                SCRBUF="${SCRBUF}${SGI_FgMagenta}${graph[$i]}\n"
+            elif [ $i -lt 7 ]; then
+                SCRBUF="${SCRBUF}${SGI_FgYellow}${graph[$i]}\n"
+            elif [ $i -lt 9 ]; then
+                SCRBUF="${SCRBUF}${SGI_FgGreen}${graph[$i]}\n"
+            elif [ $i -lt 11 ]; then
+                SCRBUF="${SCRBUF}${SGI_FgBlue}${graph[$i]}\n"
+            else
+                SCRBUF="${SCRBUF}${SGI_FgDefault}${graph[$i]}\n"
+            fi
+        done
+    fi
 }
 
 altscrn_enter() {
