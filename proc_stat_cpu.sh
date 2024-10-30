@@ -376,6 +376,7 @@ cpu_graph() {
             graph[$((10-${q}))]="${graph[$((10-${q}))]}██│"
         done
         # Remainder part of the bar
+        [ ${used99} -eq 0 ] && rc="0%%│"
         if [ $q -lt 10 ]; then
             graph[$((10-${q}))]="${graph[$((10-${q}))]}${rc}"
             q=$(($q+1))
@@ -399,7 +400,7 @@ cpu_graph() {
             if [ ${used} -gt 99 ]; then
                 graph[0]="${graph[0]}▁▁ "
             else
-                pos=$((10-${q}))
+                pos=$((${#GRAPH_SCALE[@]}-2-${q}))
                 local vl
                 local hl
                 if [ ${pos} -gt 0 ]; then
@@ -411,14 +412,16 @@ cpu_graph() {
                 fi
                 color_per ${used99}; color_fw=${_retval}
                 color_per $((${q}*10)); color_rwd=${_retval}
-                if [ ${used99} -lt 10 ]; then
+                if [ ${used99} -eq 0 ]; then
+                    graph[${pos}]="${graph[${pos}]} ${color_fw} ${color_rwd}${vl}"
+                elif [ ${used99} -lt 10 ]; then
                     graph[${pos}]="${graph[${pos}]} ${color_fw}${used99}${color_rwd}${vl}"
                 else
                     graph[${pos}]="${graph[${pos}]}${color_fw}${used99}${color_rwd}${vl}"
                 fi
                 q=$(($q+1))
                 for ((; q < 10; q++)); do
-                    pos=$((10-${q}))
+                    pos=$((${#GRAPH_SCALE[@]}-2-${q}))
                     graph[${pos}]="${graph[${pos}]}  │"
                 done
                 graph[0]="${graph[0]}${hl}"
