@@ -372,7 +372,7 @@ cpu_graph() {
         fi
         if [ ${GRAPH_CHAR} -eq 0 ]; then
             if   [ ${remainder} -gt 6 ]; then rc="■│"
-            elif [ ${remainder} -gt 0 ]; then rc="__│"
+            elif [ ${remainder} -gt 0 ]; then rc="〓│"
             else rc="  │"
             fi
         fi
