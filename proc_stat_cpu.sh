@@ -12,6 +12,7 @@
 #   CPU_GRAPH:      0:hide graph 1:show graph
 #   GRAPH_NUMPOS:   0:top 1:above the bar
 #   GRAPH_COLOR:    0:no color 1:use color
+#   GRAPH_CHAR:     0:old 1:unicode(teraterm) legacy(xterm) 2:unicode graphic(curret)
 
 # [ -z "${INTERVAL}" ] && INTERVAL=0.1
 [ -z "${INTERVAL}" ] && INTERVAL=1
@@ -24,6 +25,7 @@
 [ -z "${CPU_GRAPH}" ] && CPU_GRAPH=1
 [ -z "${GRAPH_NUMPOS}" ] && GRAPH_NUMPOS=1
 [ -z "${GRAPH_COLOR}" ] && GRAPH_COLOR=1
+[ -z "${GRAPH_CHAR}" ] && GRAPH_CHAR=2
 
 _retval=
 retval() {
@@ -236,18 +238,20 @@ if [ ${GRAPH_COLOR} -ne 0 ]; then
     FgB="${SGI_BoldBright}${SGI_FgBlue}"
 fi
 
+[ ${GRAPH_CHAR} -lt 2 ] && GRAPH_RETICLE="_" || GRAPH_RETICLE="˾"
+[ ${GRAPH_CHAR} -lt 2 ] && GRAPH_LID="_"     || GRAPH_LID="⸏"
 GRAPH_SCALE=(
-"100˾│"
-" 90˾│"
-" 80˾│"
-" 70˾│"
-" 60˾│"
-" 50˾│"
-" 40˾│"
-" 30˾│"
-" 20˾│"
-" 10˾│"
-"  0˾│"
+"100${GRAPH_RETICLE}│"
+" 90${GRAPH_RETICLE}│"
+" 80${GRAPH_RETICLE}│"
+" 70${GRAPH_RETICLE}│"
+" 60${GRAPH_RETICLE}│"
+" 50${GRAPH_RETICLE}│"
+" 40${GRAPH_RETICLE}│"
+" 30${GRAPH_RETICLE}│"
+" 20${GRAPH_RETICLE}│"
+" 10${GRAPH_RETICLE}│"
+"  0${GRAPH_RETICLE}│"
 "    │"
 )
 
@@ -366,13 +370,23 @@ cpu_graph() {
         elif [ ${remainder} -gt 0 ]; then rc="▁▁│"
         else rc="  │"
         fi
+        if [ ${GRAPH_CHAR} -eq 0 ]; then
+            if   [ ${remainder} -gt 6 ]; then rc="■│"
+            elif [ ${remainder} -gt 0 ]; then rc="__│"
+            else rc="  │"
+            fi
+        fi
         [ ${i} -eq 0 ] && graph[11]="${graph[11]}"$(printf "%2u" $((${linenum}-1)))"│" || graph[11]="${graph[11]}C"$(printf "%x" $((${i}-1)))"│"
         #printf "USED[$i]=${used99}(${quotient},${remainder} rc=$rc)\n"
 
         # Quotient part of the bar
         local pos
         for ((q=0; q < ${quotient}; q++)); do
-            graph[$((10-${q}))]="${graph[$((10-${q}))]}██│"
+            if [ ${GRAPH_CHAR} -eq 0 ]; then
+                graph[$((10-${q}))]="${graph[$((10-${q}))]}■│"
+            else
+                graph[$((10-${q}))]="${graph[$((10-${q}))]}██│"
+            fi
         done
         # Remainder part of the bar
         [ ${used99} -eq 0 ] && rc="0%%│"
@@ -404,7 +418,7 @@ cpu_graph() {
                 local hl
                 if [ ${pos} -gt 0 ]; then
                     vl="│"
-                    hl="⸏⸏ "
+                    hl="${GRAPH_LID}${GRAPH_LID} "
                 else
                     vl=" "
                     hl=""
