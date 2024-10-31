@@ -265,7 +265,6 @@ cpu_stat() {
     [ ${DATETIME} -ne 0 ] && Ps=$((${Ps}+1))
     [ ${CPU_STAT} -ne 0 ] && Ps=$((${Ps}+${linenum}+1))
     [ ${CPU_GRAPH} -ne 0 ] && Ps=$((${Ps}+${#GRAPH_SCALE[@]}+1))
-    local LABEL_ALL="ALL(${num_cpu})"
 
     for ((i=0; i < ${linenum}; i++)); do
         let local n=(${i} - 1)
@@ -310,13 +309,13 @@ cpu_stat() {
             if [ ${CPU_STAT} -ne 0 ]; then
                 if [ ${i} -eq 0 ]; then
                     SCRBUF="${SCRBUF}$(
-                        printf "CPU[#] %7s %7s %7s %7s %7s %7s %7s" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
+                        printf "%-7s %7s %7s %7s %7s %7s %7s %7s" "CPU[#]" "user" "nice" "sys" "idle" "iowait" "irq" "softirq"
                     )${NL}$(
-                        printf "${LABEL_ALL} %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                        printf "%-7s %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" "ALL(${num_cpu})" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
                     )${NL}"
                 else
                     SCRBUF=${SCRBUF}$(
-                        printf "CPU[$n] %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
+                        printf "%-7s %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%% %6s%%%%" "CPU[$n]" ${user} ${nice} ${sys} ${idle} ${iowait} ${irq} ${softirq}
                     )${NL}
                 fi
             fi
