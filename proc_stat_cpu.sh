@@ -238,8 +238,36 @@ if [ ${GRAPH_COLOR} -ne 0 ]; then
     FgB="${SGI_BoldBright}${SGI_FgBlue}"
 fi
 
-[ ${GRAPH_CHAR} -lt 2 ] && GRAPH_RETICLE="_" || GRAPH_RETICLE="˾"
-[ ${GRAPH_CHAR} -lt 2 ] && GRAPH_LID="_"     || GRAPH_LID="⸏"
+if [ ${GRAPH_CHAR} -lt 2 ]; then
+    GRAPH_RETICLE="_"
+    GRAPH_LID="_"
+else
+    GRAPH_RETICLE="˾"
+    GRAPH_LID="⸏"
+fi
+if [ ${GRAPH_CHAR} -eq 0 ]; then
+    GRAPH_CH80="■"
+    GRAPH_CH70="■"
+    GRAPH_CH60="■"
+    GRAPH_CH50="■"
+    GRAPH_CH40="〓"
+    GRAPH_CH30="〓"
+    GRAPH_CH20="〓"
+    GRAPH_CH10="〓"
+    GRAPH_CH00="  "
+else
+    GRAPH_CH80="██"
+    GRAPH_CH70="▇▇"
+    GRAPH_CH60="▆▆"
+    GRAPH_CH50="▅▅"
+    GRAPH_CH40="▄▄"
+    GRAPH_CH30="▃▃"
+    GRAPH_CH20="▂▂"
+    GRAPH_CH10="▁▁"
+    GRAPH_CH00="  "
+fi
+
+
 GRAPH_SCALE=(
 "100${GRAPH_RETICLE}│"
 " 90${GRAPH_RETICLE}│"
@@ -360,21 +388,15 @@ cpu_graph() {
         local quotient=$((${used99}/10))
         local remainder=$((${used99}%10))
         local rc=""
-        if   [ ${remainder} -gt 8 ]; then rc="██│"
-        elif [ ${remainder} -gt 7 ]; then rc="▇▇│"
-        elif [ ${remainder} -gt 6 ]; then rc="▆▆│"
-        elif [ ${remainder} -gt 5 ]; then rc="▅▅│"
-        elif [ ${remainder} -gt 4 ]; then rc="▄▄│"
-        elif [ ${remainder} -gt 3 ]; then rc="▃▃│"
-        elif [ ${remainder} -gt 2 ]; then rc="▂▂│"
-        elif [ ${remainder} -gt 0 ]; then rc="▁▁│"
-        else rc="  │"
-        fi
-        if [ ${GRAPH_CHAR} -eq 0 ]; then
-            if   [ ${remainder} -gt 6 ]; then rc="■│"
-            elif [ ${remainder} -gt 0 ]; then rc="〓│"
-            else rc="  │"
-            fi
+        if   [ ${remainder} -gt 8 ]; then rc="${GRAPH_CH80}│"
+        elif [ ${remainder} -gt 7 ]; then rc="${GRAPH_CH70}│"
+        elif [ ${remainder} -gt 6 ]; then rc="${GRAPH_CH60}│"
+        elif [ ${remainder} -gt 5 ]; then rc="${GRAPH_CH50}│"
+        elif [ ${remainder} -gt 4 ]; then rc="${GRAPH_CH40}│"
+        elif [ ${remainder} -gt 3 ]; then rc="${GRAPH_CH30}│"
+        elif [ ${remainder} -gt 2 ]; then rc="${GRAPH_CH20}│"
+        elif [ ${remainder} -gt 0 ]; then rc="${GRAPH_CH10}│"
+        else                              rc="${GRAPH_CH00}│"
         fi
         [ ${i} -eq 0 ] && graph[11]="${graph[11]}"$(printf "%2u" $((${linenum}-1)))"│" || graph[11]="${graph[11]}C"$(printf "%x" $((${i}-1)))"│"
         #printf "USED[$i]=${used99}(${quotient},${remainder} rc=$rc)\n"
@@ -382,11 +404,7 @@ cpu_graph() {
         # Quotient part of the bar
         local pos
         for ((q=0; q < ${quotient}; q++)); do
-            if [ ${GRAPH_CHAR} -eq 0 ]; then
-                graph[$((10-${q}))]="${graph[$((10-${q}))]}■│"
-            else
-                graph[$((10-${q}))]="${graph[$((10-${q}))]}██│"
-            fi
+            graph[$((10-${q}))]="${graph[$((10-${q}))]}${GRAPH_CH80}│"
         done
         # Remainder part of the bar
         [ ${used99} -eq 0 ] && rc="0%%│"
