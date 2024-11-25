@@ -398,7 +398,8 @@ cpu_graph() {
         elif [ ${remainder} -gt 0 ]; then rc="${GRAPH_CH10}│"
         else                              rc="${GRAPH_CH00}│"
         fi
-        [ ${i} -eq 0 ] && graph[11]="${graph[11]}"$(printf "%2u" $((${linenum}-1)))"│" || graph[11]="${graph[11]}C"$(printf "%x" $((${i}-1)))"│"
+        [ ${i} -eq 0 ] && graph[11]="${graph[11]}"$(printf "%2u" $((${linenum}-1)))"│" \
+                || graph[11]="${graph[11]}"$(printf "%02u" $((${i}-1)))"│"
         #printf "USED[$i]=${used99}(${quotient},${remainder} rc=$rc)\n"
 
         # Quotient part of the bar
