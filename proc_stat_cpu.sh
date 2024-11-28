@@ -14,6 +14,153 @@
 #   GRAPH_COLOR:    0:no color 1:use color
 #   GRAPH_CHAR:     0:old 1:unicode(teraterm) legacy(xterm) 2:unicode graphic(curret)
 
+# Parse command options
+while (( $# > 0 ))
+do
+    case $1 in
+        -i | --interval | --interval=*)
+            if [[ "$1" =~ ^--interval= ]]; then
+                INTERVAL=$(echo $1 | sed -e 's/^--interval=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                INTERVAL="$2"
+                shift
+            fi
+            echo "interval=${INTERVAL}"
+            ;;
+        --hide_cursor | --hide_cursor=*)
+            if [[ "$1" =~ ^--hide_cursor= ]]; then
+                HIDE_CURSOR=$(echo $1 | sed -e 's/^--hide_cursor=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                HIDE_CURSOR="$2"
+                shift
+            fi
+            echo "hide_cursor=${HIDE_CURSOR}"
+            ;;
+        --view_pos | --view_pos=*)
+            if [[ "$1" =~ ^--view_pos= ]]; then
+                VIEW_POS=$(echo $1 | sed -e 's/^--view_pos=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                VIEW_POS="$2"
+                shift
+            fi
+            echo "view_pos=${VIEW_POS}"
+            ;;
+        --interval_sec | --interval_sec=*)
+            if [[ "$1" =~ ^--interval_sec= ]]; then
+                INTERVAL_SEC=$(echo $1 | sed -e 's/^--interval_sec=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                INTERVAL_SEC="$2"
+                shift
+            fi
+            echo "interval_sec=${INTERVAL_SEC}"
+            ;;
+        --use_bc | --use_bc=*)
+            if [[ "$1" =~ ^--use_bc= ]]; then
+                USE_BC=$(echo $1 | sed -e 's/^--use_bc=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                USE_BC="$2"
+                shift
+            fi
+            echo "use_bc=${USE_BC}"
+            ;;
+        --datetime | --datetime=*)
+            if [[ "$1" =~ ^--datetime= ]]; then
+                DATETIMR=$(echo $1 | sed -e 's/^--datetime=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                DATETIMR="$2"
+                shift
+            fi
+            echo "datetime=${DATETIMR}"
+            ;;
+        --cpu_stat | --cpu_stat=*)
+            if [[ "$1" =~ ^--cpu_stat= ]]; then
+                CPU_STAT=$(echo $1 | sed -e 's/^--cpu_stat=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                CPU_STAT="$2"
+                shift
+            fi
+            echo "cpu_stat=${CPU_STAT}"
+            ;;
+        --cpu_graph | --cpu_graph=*)
+            if [[ "$1" =~ ^--cpu_graph= ]]; then
+                CPU_GRAPH=$(echo $1 | sed -e 's/^--cpu_graph=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                CPU_GRAPH="$2"
+                shift
+            fi
+            echo "cpu_graph=${CPU_GRAPH}"
+            ;;
+        --graph_numpos | --graph_numpos=*)
+            if [[ "$1" =~ ^--graph_numpos= ]]; then
+                GRAPH_NUMPOS=$(echo $1 | sed -e 's/^--graph_numpos=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                GRAPH_NUMPOS="$2"
+                shift
+            fi
+            echo "graph_numpos=${GRAPH_NUMPOS}"
+            ;;
+        --graph_color | --graph_color=*)
+            if [[ "$1" =~ ^--graph_color= ]]; then
+                GRAPH_COLOR=$(echo $1 | sed -e 's/^--graph_color=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                GRAPH_COLOR="$2"
+                shift
+            fi
+            echo "graph_color=${GRAPH_COLOR}"
+            ;;
+        --graph_char | --graph_char=*)
+            if [[ "$1" =~ ^--graph_char= ]]; then
+                GRAPH_CHAR=$(echo $1 | sed -e 's/^--graph_char=//')
+            elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                echo "'option' requires an argument." 1>&2
+                exit 1
+            else
+                GRAPH_CHAR="$2"
+                shift
+            fi
+            echo "graph_char=${GRAPH_CHAR}"
+            ;;
+        -*)
+            echo "invalid option"
+            exit 1
+            ;;
+        *)
+            echo "argument $1"
+            ;;
+    esac
+    shift
+done
+
 # [ -z "${INTERVAL}" ] && INTERVAL=0.1
 [ -z "${INTERVAL}" ] && INTERVAL=1
 [ -z "${HIDE_CURSOR}" ] && HIDE_CURSOR=1
