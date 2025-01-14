@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: 2024 Shigehiro Fukase <shigehiro.fukase@gmail.com>
+# SPDX-FileCopyrightText: 2024-2025 Shigehiro Fukase <shigehiro.fukase@gmail.com>
 # SPDX-License-Identifier: MIT
 
 # gloval variables (parameter)
