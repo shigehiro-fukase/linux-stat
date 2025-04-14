@@ -12,7 +12,7 @@
 #   CPU_GRAPH:      0:hide graph 1:show graph
 #   GRAPH_NUMPOS:   0:top 1:above the bar
 #   GRAPH_COLOR:    0:no color 1:use color
-#   GRAPH_CHAR:     0:old 1:unicode(teraterm) legacy(xterm) 2:unicode graphic(curret)
+#   GRAPH_CHAR:     0:old(teraterm) 1:unicode legacy(xterm) 2:unicode graphic
 
 # Parse command options
 while (( $# > 0 ))
