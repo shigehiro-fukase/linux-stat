@@ -150,6 +150,36 @@ do
             fi
             echo "graph_char=${GRAPH_CHAR}"
             ;;
+        -h | --help)
+		echo "A CPU top viewer"
+		echo ""
+		echo "Usage: $0 OPTIONS"
+		echo ""
+		echo "OPTIONS:"
+		echo "-i NUM | --interval NUM | --interval=NUM"
+		echo "    INTERVAL_SEC:   sleep every loop"
+		echo "--hide_cursor | --hide_cursor=NUM"
+		echo "    HIDE_CURSOR:    0:show !0:hide cursor"
+		echo "--view_pos | --view_pos=NUM"
+		echo "    VIEW_POS:       0:top-left 1:bottom-left"
+		echo "--interval_sec | --interval_sec=NUM"
+		echo "    INTERVAL_SEC:   sleep every loop"
+		echo "--use_bc | --use_bc=NUM"
+		echo "    USE_BC:         use `bc` command, calculate by float"
+		echo "--datetime | --datetime=NUM"
+		echo "    DATETIME:       0:hide datetime 1:show datetime"
+		echo "--cpu_stat | --cpu_stat=NUM"
+		echo "    CPU_STAT:       0:hide stat 1:show stat"
+		echo "--cpu_graph | --cpu_graph=NUM"
+		echo "    CPU_GRAPH:      0:hide graph 1:show graph"
+		echo "--graph_numpos | --graph_numpos=NUM"
+		echo "    GRAPH_NUMPOS:   0:top 1:above the bar"
+		echo "--graph_color | --graph_color=NUM"
+		echo "    GRAPH_COLOR:    0:no color 1:use color"
+		echo "--graph_char | --graph_char=NUM"
+		echo "    GRAPH_CHAR:     0:old(teraterm) 1:unicode legacy(xterm) 2:unicode graphic"
+		exit 0
+            ;;
         -*)
             echo "invalid option"
             exit 1
