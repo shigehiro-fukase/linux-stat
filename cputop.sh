@@ -165,7 +165,7 @@ do
 		echo "--interval_sec | --interval_sec=NUM"
 		echo "    INTERVAL_SEC:   sleep every loop"
 		echo "--use_bc | --use_bc=NUM"
-		echo "    USE_BC:         use `bc` command, calculate by float"
+		echo "    USE_BC:         use \`bc\` command, calculate by float"
 		echo "--datetime | --datetime=NUM"
 		echo "    DATETIME:       0:hide datetime 1:show datetime"
 		echo "--cpu_stat | --cpu_stat=NUM"
