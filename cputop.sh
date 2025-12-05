@@ -202,7 +202,7 @@ done
 [ -z "${CPU_GRAPH}" ] && CPU_GRAPH=1
 [ -z "${GRAPH_NUMPOS}" ] && GRAPH_NUMPOS=1
 [ -z "${GRAPH_COLOR}" ] && GRAPH_COLOR=1
-[ -z "${GRAPH_CHAR}" ] && GRAPH_CHAR=2
+[ -z "${GRAPH_CHAR}" ] && GRAPH_CHAR=1
 
 _retval=
 retval() {
