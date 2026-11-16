@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SHOW_SEP=0
+SHOW_DOT=0
 SHOW_HEADER=0
 USE_COLOR=0
 EXCLUDE_TMPFS=0
@@ -12,6 +13,7 @@ usage() {
     cat <<EOF
 Usage: $0 [OPTIONS]
   -s, --separator         1回のチェックで変化があった場合に末尾に区切り線を表示する
+  -d, --dot               1回のチェックで変化がなかった場合に.を表示する
   -H, --header            1回のチェックで変化があった場合に先頭にヘッダーを表示する
   -c, --color             増減の数値を色付きで強調表示する（増加=赤/緑, 減少=緑/赤, 端末出力時のみ有効）
   -x, --exclude-tmpfs     tmpfs を監視対象から除外する（df -x tmpfs）
@@ -27,6 +29,10 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         -s|--separator)
             SHOW_SEP=1
+            shift
+            ;;
+        -d|--dot)
+            SHOW_DOT=1
             shift
             ;;
         -H|--header)
@@ -96,6 +102,7 @@ while true; do
     sleep "$INTERVAL"
 done | awk \
     -v show_sep="$SHOW_SEP" \
+    -v show_dot="$SHOW_DOT" \
     -v show_header="$SHOW_HEADER" \
     -v use_color="$USE_COLOR" \
     -v block_label="$BLOCK_LABEL" '
@@ -116,6 +123,7 @@ BEGIN {
 
 # 1サイクルごとの区切り処理
 $0 == "---TICK---" {
+    if (show_dot && !changed_in_tick) { printf "." }
     if (show_sep && changed_in_tick) {
         print "--------------------------------------------------------------------------------------------------------"
     }
@@ -161,6 +169,7 @@ NF >= 6 {
         if (diff_used != 0 || diff_avail != 0) {
             # この回の最初の変化行であればヘッダーを出力
             if (show_header && !changed_in_tick) {
+                if (show_dot) { print "" }
                 printf "%s%-10s %-20s %12s %22s %22s %6s %s%s\n",
                     c_bold, "[Time]", "Filesystem", block_label, "Used", "Available", "Cap%", "Mounted on", c_reset
             }
