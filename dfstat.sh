@@ -168,8 +168,8 @@ NF >= 6 {
 
         if (diff_used != 0 || diff_avail != 0) {
             # この回の最初の変化行であればヘッダーを出力
+            if (show_dot && !changed_in_tick) { print "" }
             if (show_header && !changed_in_tick) {
-                if (show_dot) { print "" }
                 printf "%s%-10s %-20s %12s %22s %22s %6s %s%s\n",
                     c_bold, "[Time]", "Filesystem", block_label, "Used", "Available", "Cap%", "Mounted on", c_reset
             }
