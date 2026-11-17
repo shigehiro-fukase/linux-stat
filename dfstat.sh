@@ -109,6 +109,7 @@ done | awk \
 BEGIN {
     first_run = 1
     changed_in_tick = 0
+    dot_count = 0
 
     # ANSIカラーコード定義
     if (use_color) {
@@ -123,7 +124,14 @@ BEGIN {
 
 # 1サイクルごとの区切り処理
 $0 == "---TICK---" {
-    if (show_dot && !changed_in_tick) { printf "." }
+    if (show_dot && !changed_in_tick) {
+        len = length(dot_count)+1
+        for (i = 0; i < len; i++) {
+            printf "\b"
+        }
+        ((++dot_count))
+        printf dot_count "."
+    }
     if (show_sep && changed_in_tick) {
         print "--------------------------------------------------------------------------------------------------------"
     }
@@ -168,7 +176,10 @@ NF >= 6 {
 
         if (diff_used != 0 || diff_avail != 0) {
             # この回の最初の変化行であればヘッダーを出力
-            if (show_dot && !changed_in_tick) { print "" }
+            if (show_dot && !changed_in_tick) {
+                print ""
+                dot_count = 0
+            }
             if (show_header && !changed_in_tick) {
                 printf "%s%-10s %-20s %12s %22s %22s %6s %s%s\n",
                     c_bold, "[Time]", "Filesystem", block_label, "Used", "Available", "Cap%", "Mounted on", c_reset
@@ -199,7 +210,7 @@ NF >= 6 {
             printf "[%s] %-20s %12s %*s %*s %6s %s\n",
                 strftime("%H:%M:%S"), $1, $2, pad_used, str_used, pad_avail, str_avail, $5, mount_point
 
-            changed_in_tick = 1
+            ((changed_in_tick++))
         }
     }
 
