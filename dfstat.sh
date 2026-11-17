@@ -1,10 +1,10 @@
 #!/bin/bash
 
 SHOW_SEP=0
-SHOW_DOT=0
-SHOW_HEADER=0
-USE_COLOR=0
-EXCLUDE_TMPFS=0
+SHOW_DOT=1
+SHOW_HEADER=1
+USE_COLOR=1
+EXCLUDE_TMPFS=1
 INTERVAL=1
 BLOCK_SIZE=""
 
@@ -12,14 +12,15 @@ BLOCK_SIZE=""
 usage() {
     cat <<EOF
 Usage: $0 [OPTIONS]
-  -s, --separator         1回のチェックで変化があった場合に末尾に区切り線を表示する
-  -d, --dot               1回のチェックで変化がなかった場合に.を表示する
-  -H, --header            1回のチェックで変化があった場合に先頭にヘッダーを表示する
-  -c, --color             増減の数値を色付きで強調表示する（増加=赤/緑, 減少=緑/赤, 端末出力時のみ有効）
-  -x, --exclude-tmpfs     tmpfs を監視対象から除外する（df -x tmpfs）
-  -i, --interval SEC      監視間隔を秒単位で指定する（デフォルト: 1）
-  -B, --block-size SIZE   表示ブロックサイズを指定する（例: 1K, 1M, 1G）
-  -h, --help              このヘルプを表示する
+  'no-'のついたオプション名は否定を意味します (ex: '--no-header': ヘッダーを表示しない)
+  -s, --[no-]separator      1回のチェックで変化があった場合に末尾に区切り線を表示する
+  -d, --[no-]dot            1回のチェックで変化がなかった場合に "回数." を表示する
+  -H, --[no-]header         1回のチェックで変化があった場合に先頭にヘッダーを表示する
+  -c, --[no-]color          増減の数値を色付きで強調表示する（増加=赤/緑, 減少=緑/赤, 端末出力時のみ有効）
+  -x, --[no-]exclude-tmpfs  tmpfs を監視対象から除外する（df -x tmpfs）
+  -i, --interval SEC        監視間隔を秒単位で指定する（デフォルト: 1）
+  -B, --block-size SIZE     表示ブロックサイズを指定する（例: 1K, 1M, 1G）
+  -h, --help                このヘルプを表示する
 EOF
     exit 0
 }
@@ -31,20 +32,40 @@ while [[ $# -gt 0 ]]; do
             SHOW_SEP=1
             shift
             ;;
+        --no-separator)
+            SHOW_SEP=0
+            shift
+            ;;
         -d|--dot)
             SHOW_DOT=1
+            shift
+            ;;
+        --no-dot)
+            SHOW_DOT=0
             shift
             ;;
         -H|--header)
             SHOW_HEADER=1
             shift
             ;;
+        --no-header)
+            SHOW_HEADER=0
+            shift
+            ;;
         -c|--color)
             USE_COLOR=1
             shift
             ;;
+        --no-color)
+            USE_COLOR=0
+            shift
+            ;;
         -x|--exclude-tmpfs)
             EXCLUDE_TMPFS=1
+            shift
+            ;;
+        -no-x|--no-exclude-tmpfs)
+            EXCLUDE_TMPFS=0
             shift
             ;;
         -i|--interval)
