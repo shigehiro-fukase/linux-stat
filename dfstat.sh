@@ -176,7 +176,7 @@ NF >= 6 {
 
         if (diff_used != 0 || diff_avail != 0) {
             # この回の最初の変化行であればヘッダーを出力
-            if (show_dot && !changed_in_tick) {
+            if (show_dot && !changed_in_tick && (dot_count>0)) {
                 print ""
                 dot_count = 0
             }
